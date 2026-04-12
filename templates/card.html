@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ fighter.name }} — Fighter Card</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 1080px;
+      height: 1080px;
+      overflow: hidden;
+      background-color: #0d0d1a;
+      font-family: 'Inter', sans-serif;
+      color: #ffffff;
+    }
+
+    .card {
+      width: 1080px;
+      height: 1080px;
+      background: linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 50%, #16213e 100%);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 48px;
+    }
+
+    /* Decorative accent line */
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #e63946, #ff6b35, #e63946);
+    }
+
+    /* Header */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 32px;
+    }
+
+    .fighter-identity {
+      flex: 1;
+    }
+
+    .fighter-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 80px;
+      line-height: 0.9;
+      letter-spacing: 2px;
+      color: #ffffff;
+      text-transform: uppercase;
+    }
+
+    .fighter-nickname {
+      font-family: 'Oswald', sans-serif;
+      font-size: 28px;
+      font-weight: 400;
+      color: #e63946;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+      margin-top: 8px;
+    }
+
+    .fighter-meta {
+      text-align: right;
+      font-family: 'Oswald', sans-serif;
+    }
+
+    .record {
+      font-size: 48px;
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1;
+    }
+
+    .record-label {
+      font-size: 14px;
+      font-weight: 400;
+      color: #888;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+    }
+
+    .fighter-details {
+      display: flex;
+      gap: 24px;
+      margin-top: 8px;
+      font-size: 14px;
+      color: #aaa;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+
+    .fighter-details span {
+      color: #ffffff;
+      font-weight: 600;
+    }
+
+    /* Divider */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, #e63946, transparent);
+      margin-bottom: 32px;
+    }
+
+    /* Main content grid */
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      flex: 1;
+    }
+
+    /* Left column */
+    .left-column {}
+
+    .section-title {
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      color: #e63946;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    /* Attributes */
+    .attributes {
+      margin-bottom: 32px;
+    }
+
+    .attr-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .attr-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #ccc;
+      width: 100px;
+      flex-shrink: 0;
+    }
+
+    .attr-bar-track {
+      flex: 1;
+      height: 8px;
+      background: #1e1e35;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .attr-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, #e63946, #ff6b35);
+    }
+
+    .attr-score {
+      font-family: 'Oswald', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      color: #ffffff;
+      width: 24px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    /* Signature weapons */
+    .weapons {
+      margin-bottom: 32px;
+    }
+
+    .weapon-tag {
+      display: inline-block;
+      background: rgba(230, 57, 70, 0.15);
+      border: 1px solid rgba(230, 57, 70, 0.4);
+      color: #ff8a93;
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      padding: 6px 14px;
+      border-radius: 3px;
+      margin: 0 6px 8px 0;
+    }
+
+    /* Right column */
+    .right-column {}
+
+    .fighting-style {
+      font-family: 'Oswald', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      color: #ff6b35;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 24px;
+      line-height: 1.2;
+    }
+
+    .bio {
+      font-size: 15px;
+      line-height: 1.7;
+      color: #ccc;
+      margin-bottom: 32px;
+    }
+
+    .fun-fact-box {
+      background: rgba(255, 107, 53, 0.08);
+      border-left: 3px solid #ff6b35;
+      padding: 16px 20px;
+      border-radius: 0 6px 6px 0;
+    }
+
+    .fun-fact-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 11px;
+      letter-spacing: 3px;
+      color: #ff6b35;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .fun-fact-text {
+      font-size: 14px;
+      line-height: 1.6;
+      color: #bbb;
+    }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #1e1e35;
+    }
+
+    .app-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 18px;
+      letter-spacing: 3px;
+      color: #444;
+      text-transform: uppercase;
+    }
+
+    .gym-nationality {
+      font-family: 'Oswald', sans-serif;
+      font-size: 13px;
+      color: #555;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <!-- Header: name + record -->
+    <div class="header">
+      <div class="fighter-identity">
+        <div class="fighter-name">{{ fighter.name }}</div>
+        {% if fighter.nickname %}
+        <div class="fighter-nickname">"{{ fighter.nickname }}"</div>
+        {% endif %}
+      </div>
+      <div class="fighter-meta">
+        <div class="record">{{ fighter.record_wins }}-{{ fighter.record_losses }}</div>
+        <div class="record-label">W — L</div>
+        {% if fighter.record_kos %}
+        <div class="fighter-details">KO <span>{{ fighter.record_kos }}</span></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Main content -->
+    <div class="main-content">
+
+      <!-- Left: attributes + weapons -->
+      <div class="left-column">
+        <div class="attributes">
+          <div class="section-title">Fighter Attributes</div>
+
+          {% set attr_labels = [
+            ("Aggression", fighter.attributes.aggression),
+            ("Power",      fighter.attributes.power),
+            ("Footwork",   fighter.attributes.footwork),
+            ("Clinch",     fighter.attributes.clinch),
+            ("Cardio",     fighter.attributes.cardio),
+            ("Technique",  fighter.attributes.technique),
+          ] %}
+
+          {% for label, score in attr_labels %}
+          <div class="attr-row">
+            <div class="attr-label">{{ label }}</div>
+            <div class="attr-bar-track">
+              <div class="attr-bar-fill" style="width: {{ score * 10 }}%;"></div>
+            </div>
+            <div class="attr-score">{{ score }}</div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="weapons">
+          <div class="section-title">Signature Weapons</div>
+          {% for weapon in fighter.signature_weapons %}
+          <span class="weapon-tag">{{ weapon }}</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Right: style + bio + fun fact -->
+      <div class="right-column">
+        <div class="section-title">Fighting Style</div>
+        <div class="fighting-style">{{ fighter.fighting_style }}</div>
+
+        <div class="section-title">Profile</div>
+        <div class="bio">{{ fighter.bio }}</div>
+
+        {% if fighter.fun_fact %}
+        <div class="fun-fact-box">
+          <div class="fun-fact-label">Did You Know</div>
+          <div class="fun-fact-text">{{ fighter.fun_fact }}</div>
+        </div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <div class="app-brand">Muay Thai Cards</div>
+      <div class="gym-nationality">
+        {% if fighter.gym %}{{ fighter.gym }}{% endif %}
+        {% if fighter.gym and fighter.nationality %} · {% endif %}
+        {% if fighter.nationality %}{{ fighter.nationality }}{% endif %}
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

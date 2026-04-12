@@ -1,0 +1,295 @@
+/* ============================================================
+   Reset & Base
+   ============================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg-base:        #0d0d1a;
+  --bg-surface:     #13131f;
+  --bg-elevated:    #1a1a2e;
+  --accent-red:     #e63946;
+  --accent-orange:  #ff6b35;
+  --text-primary:   #ffffff;
+  --text-secondary: #aaaaaa;
+  --text-muted:     #555555;
+  --border:         #222236;
+  --input-bg:       #111120;
+  --radius:         6px;
+  --font-heading:   'Bebas Neue', sans-serif;
+  --font-ui:        'Oswald', sans-serif;
+  --font-body:      'Inter', sans-serif;
+}
+
+html, body {
+  height: 100%;
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   App Layout
+   ============================================================ */
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 24px 80px;
+}
+
+.app-header {
+  text-align: center;
+  margin-bottom: 48px;
+}
+
+.app-title {
+  font-family: var(--font-heading);
+  font-size: 56px;
+  letter-spacing: 4px;
+  color: var(--text-primary);
+  line-height: 1;
+  /* Red underline accent */
+  background: linear-gradient(90deg, var(--accent-red), var(--accent-orange));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app-subtitle {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  letter-spacing: 3px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+.app-main {
+  width: 100%;
+  max-width: 760px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+/* ============================================================
+   Fighter Input
+   ============================================================ */
+.input-section {}
+
+.input-group {
+  display: flex;
+  gap: 12px;
+}
+
+.fighter-input {
+  flex: 1;
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  padding: 14px 18px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.fighter-input::placeholder {
+  color: var(--text-muted);
+}
+
+.fighter-input:focus {
+  border-color: var(--accent-red);
+}
+
+/* ============================================================
+   Buttons
+   ============================================================ */
+.btn {
+  font-family: var(--font-ui);
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  padding: 14px 28px;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-primary {
+  background: var(--accent-red);
+  color: #ffffff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.btn-accent {
+  background: linear-gradient(90deg, var(--accent-red), var(--accent-orange));
+  color: #ffffff;
+  width: 100%;
+  padding: 16px;
+  font-size: 16px;
+  letter-spacing: 3px;
+}
+
+.btn-accent:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+/* ============================================================
+   Progress Steps
+   ============================================================ */
+.progress-section {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+}
+
+.progress-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.step-icon {
+  font-size: 18px;
+  width: 24px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.step-label {
+  font-family: var(--font-ui);
+  font-size: 14px;
+  letter-spacing: 1px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+}
+
+.step.active .step-label {
+  color: var(--text-primary);
+}
+
+.step.done .step-label {
+  color: var(--accent-orange);
+}
+
+/* ============================================================
+   Card Preview
+   ============================================================ */
+.preview-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.preview-container {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg-elevated);
+}
+
+.card-preview {
+  width: 100%;
+  display: block;
+}
+
+/* ============================================================
+   Caption Editor
+   ============================================================ */
+.caption-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.caption-label {
+  font-family: var(--font-ui);
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.caption-input {
+  background: var(--input-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 14px 16px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.caption-input:focus {
+  border-color: var(--accent-red);
+}
+
+/* ============================================================
+   Status Messages
+   ============================================================ */
+.status-section {}
+
+.status-message {
+  padding: 16px 20px;
+  border-radius: var(--radius);
+  font-size: 14px;
+  font-family: var(--font-ui);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.status-message.success {
+  background: rgba(100, 200, 100, 0.1);
+  border: 1px solid rgba(100, 200, 100, 0.3);
+  color: #7dda82;
+}
+
+.status-message.error {
+  background: rgba(230, 57, 70, 0.1);
+  border: 1px solid rgba(230, 57, 70, 0.3);
+  color: var(--accent-red);
+}
+
+/* ============================================================
+   Utilities
+   ============================================================ */
+.hidden {
+  display: none !important;
+}

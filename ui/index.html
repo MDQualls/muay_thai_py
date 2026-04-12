@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Muay Thai Cards</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="app">
+
+    <!-- Header -->
+    <header class="app-header">
+      <h1 class="app-title">Muay Thai Cards</h1>
+      <p class="app-subtitle">Generate fighter profile cards and post to Instagram</p>
+    </header>
+
+    <!-- Main content -->
+    <main class="app-main">
+
+      <!-- Fighter input -->
+      <section class="input-section">
+        <div class="input-group">
+          <input
+            type="text"
+            id="fighter-input"
+            class="fighter-input"
+            placeholder="Enter fighter name e.g. Rodtang Jitmuangnon"
+            autocomplete="off"
+          />
+          <button id="generate-btn" class="btn btn-primary">Generate Card</button>
+        </div>
+      </section>
+
+      <!-- Pipeline progress (hidden until generation starts) -->
+      <section id="progress-section" class="progress-section hidden">
+        <div class="progress-steps">
+          <div class="step" id="step-scrape">
+            <span class="step-icon">⬜</span>
+            <span class="step-label">Scraping fighter data</span>
+          </div>
+          <div class="step" id="step-enrich">
+            <span class="step-icon">⬜</span>
+            <span class="step-label">Enriching with Claude AI</span>
+          </div>
+          <div class="step" id="step-render">
+            <span class="step-icon">⬜</span>
+            <span class="step-label">Rendering card</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Card preview (hidden until generation completes) -->
+      <section id="preview-section" class="preview-section hidden">
+        <div class="preview-container">
+          <img id="card-preview" class="card-preview" src="" alt="Fighter card preview" />
+        </div>
+
+        <!-- Caption editor -->
+        <div class="caption-container">
+          <label for="caption-input" class="caption-label">Instagram Caption</label>
+          <textarea id="caption-input" class="caption-input" rows="4" placeholder="Caption will appear here..."></textarea>
+        </div>
+
+        <!-- Post button -->
+        <div class="actions">
+          <button id="post-btn" class="btn btn-accent">Post to Instagram</button>
+        </div>
+      </section>
+
+      <!-- Status messages -->
+      <section id="status-section" class="status-section hidden">
+        <div id="status-message" class="status-message"></div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
