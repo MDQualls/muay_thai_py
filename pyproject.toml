@@ -7,7 +7,6 @@ dependencies = [
     "fastapi",
     "uvicorn[standard]",
     "httpx",
-    "beautifulsoup4",
     "playwright",
     "anthropic",
     "jinja2",
