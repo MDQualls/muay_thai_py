@@ -40,7 +40,7 @@ A local web app that generates stylized Muay Thai fighter profile cards and post
 | `server/exceptions.py` | Custom exception classes for each pipeline stage |
 | `server/models.py` | SQLModel table definitions (Fighter, FighterProfile, Card, InstagramPost) |
 | `server/database.py` | SQLite engine, session factory, table initialization |
-| `server/scraper.py` | Scrapes fighter data from Tapology and ONE Championship |
+| `server/fetcher.py` | Fetches fighter data from the Wikipedia API and TheSportsDB API |
 | `server/enricher.py` | Sends raw data to Claude API and parses enriched profile |
 | `server/renderer.py` | Renders Jinja2 card template to PNG via Playwright |
 | `server/uploader.py` | Uploads card PNG to Cloudflare R2, returns public URL |

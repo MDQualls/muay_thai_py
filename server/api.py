@@ -8,9 +8,9 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from sqlmodel import Session
 
-from server import enricher, publisher, renderer, scraper, uploader
+from server import enricher, fetcher, publisher, renderer, uploader
 from server.database import create_db_and_tables, get_session
-from server.exceptions import EnrichmentError, PublishError, RenderError, ScraperError, UploadError
+from server.exceptions import EnrichmentError, FetchError, PublishError, RenderError, UploadError
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +81,7 @@ async def generate(
     try:
         logger.info("Generating card for fighter: %s", request.fighter_name)
 
-        raw_data = await scraper.get_fighter_data(request.fighter_name)
+        raw_data = await fetcher.get_fighter_data(request.fighter_name)
         enriched_data = await enricher.enrich_fighter(raw_data)
         card_path = await renderer.render_card(enriched_data)
 
@@ -94,8 +94,8 @@ async def generate(
             card_path=card_path,
             caption=enriched_data.get("bio", ""),
         )
-    except ScraperError as e:
-        logger.error("Scraper failed for %s: %s", request.fighter_name, e)
+    except FetchError as e:
+        logger.error("Data fetch failed for %s: %s", request.fighter_name, e)
         raise HTTPException(status_code=502, detail=str(e))
     except EnrichmentError as e:
         logger.error("Enrichment failed for %s: %s", request.fighter_name, e)

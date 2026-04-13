@@ -1,5 +1,5 @@
-class ScraperError(Exception):
-    """Raised when scraping a fighter page fails."""
+class FetchError(Exception):
+    """Raised when fetching fighter data from the Wikipedia or SportsDB API fails."""
 
 
 class EnrichmentError(Exception):

@@ -162,7 +162,7 @@ responsibilities across modules.
 
 | Module | Owns | Does NOT own |
 |---|---|---|
-| `scraper.py` | HTTP requests, HTML parsing, raw data extraction | Any AI calls, any rendering |
+| `fetcher.py` | Wikipedia API + TheSportsDB API calls, raw data extraction | Any AI calls, any rendering |
 | `enricher.py` | Claude API calls, prompt building, response parsing | Any scraping, any file I/O |
 | `renderer.py` | Jinja2 templating, Playwright, PNG output | Any API calls, any data fetching |
 | `uploader.py` | R2/S3 client, file upload, URL construction | Any rendering, any posting |
@@ -367,7 +367,7 @@ and return responses. They do not contain business logic.
 @app.post("/generate", response_model=GenerateResponse)
 async def generate(request: GenerateRequest) -> GenerateResponse:
     try:
-        raw = await scraper.get_fighter_data(request.fighter_name)
+        raw = await fetcher.get_fighter_data(request.fighter_name)
         enriched = await enricher.enrich_fighter(raw)
         card_path = await renderer.render_card(enriched)
         return GenerateResponse(
@@ -375,7 +375,7 @@ async def generate(request: GenerateRequest) -> GenerateResponse:
             card_path=card_path,
             caption=enriched.bio,
         )
-    except ScraperError as e:
+    except FetchError as e:
         raise HTTPException(status_code=502, detail=str(e))
     except EnrichmentError as e:
         raise HTTPException(status_code=502, detail=str(e))
@@ -433,24 +433,23 @@ async def enrich_fighter(raw_data: FighterRawData) -> FighterProfile:
 
 ---
 
-## Scraping
+## Fetching Fighter Data
 
-Be a polite scraper:
+Fighter data comes from two public APIs — no HTML scraping.
 
-- Always set a real `User-Agent` header
-- Add small delays between requests (`asyncio.sleep(1)`)
-- Handle 404s and rate limits gracefully — raise `ScraperError`, do not crash
-- Cache raw HTML during development so you're not hammering sites while iterating
+**Wikipedia API** (`https://en.wikipedia.org/w/api.php`) — no key required.
+Used for biographical text, career narrative, and fight history when structured data
+isn't available elsewhere.
 
-```python
-HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
-        "AppleWebKit/537.36 (KHTML, like Gecko) "
-        "Chrome/120.0.0.0 Safari/537.36"
-    )
-}
-```
+**TheSportsDB** (`https://www.thesportsdb.com/api/v1/json/3`) — free tier, no key needed.
+Used for structured fields: nationality, team/gym, player ID.
+
+Guidelines:
+- Use `httpx.AsyncClient` for all requests — never `requests`
+- Handle non-200 responses and empty result sets gracefully — raise `FetchError`, do not crash
+- Prefer TheSportsDB structured fields over parsing Wikipedia text
+- Fall back to Wikipedia when TheSportsDB returns no result for a fighter
+- Log a warning (not an error) when a field can't be found — missing data is normal
 
 ---
 
