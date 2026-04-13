@@ -2,6 +2,7 @@ import httpx
 import logging
 import server.constants
 import server.exceptions
+from typing import Any
 
 class WikiContentGetter:
 
@@ -35,12 +36,12 @@ class WikiContentGetter:
 
         self.wiki_data = wiki_data
 
-    async def get_wiki_content(self):
+    async def get_wiki_content(self) -> dict[str, Any]:
 
         pageid = self.wiki_data.get("page_id", "")
 
         if not pageid:
-            msg = "Failed to extract pageid from wiki_data";
+            msg = "Failed to extract pageid from wiki_data"
             logging.warning(msg)
             raise ValueError(msg)
 
@@ -58,7 +59,7 @@ class WikiContentGetter:
         results = response.json()
 
         if not results:
-            self._handle_fetch_exception(f"No Wikipedia article found for pageids '{self.fighter_name}'")            
+            self._handle_fetch_exception(f"No Wikipedia article found for page_id '{pageid}'")            
 
         pages = results.get("query", {}).get("pages", {})
         page = pages.get(str(pageid), {})

@@ -2,6 +2,7 @@ import httpx
 import logging
 import server.constants
 import server.exceptions
+from typing import Any
 
 class WikiSearcher:
 
@@ -23,7 +24,7 @@ class WikiSearcher:
         
         self.fighter_name = fighter_name
 
-    async def do_wiki_search(self) -> dict[str, any]:
+    async def do_wiki_search(self) -> dict[str, Any]:
 
         params = {**self.PARAMS, "srsearch": self.fighter_name}
 
