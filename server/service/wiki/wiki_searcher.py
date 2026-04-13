@@ -5,8 +5,6 @@ import server.exceptions
 
 class WikiSearcher:
 
-    URL = "https://en.wikipedia.org/w/api.php"
-
     PARAMS = {
         "action": "query",
         "format": "json",
@@ -29,8 +27,11 @@ class WikiSearcher:
 
         params = {**self.PARAMS, "srsearch": self.fighter_name}
 
-        async with httpx.AsyncClient(headers=server.constants.HEADERS) as client:
-            response = await client.get(self.URL, params=params)
+        try:
+            async with httpx.AsyncClient(headers=server.constants.WIKIPEDIA_HEADERS) as client:
+                response = await client.get(server.constants.WIKIPEDIA_URL, params=params)
+        except httpx.RequestError as e:
+            self._handle_fetch_exception(f"Network error reaching Wikipedia: {e}")
 
         if response.status_code != 200:
             self._handle_fetch_exception(f"Wikipedia returned {response.status_code} for {self.fighter_name}")

@@ -1,9 +1,8 @@
 import httpx
 import asyncio
 
-from server.wiki_searcher import WikiSearcher
+from server.fetcher import get_fighter_data
 
-searcher = WikiSearcher("Rodtang")
-r = asyncio.run(searcher.do_wiki_search())
+r = asyncio.run(get_fighter_data("Rodtang Jitmuangnon"))
 
 print(r)
