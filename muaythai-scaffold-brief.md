@@ -192,8 +192,8 @@ gym             str | None
 record_wins     int | None
 record_losses   int | None
 record_kos      int | None
-tapology_url    str | None
-one_champ_url   str | None
+sportsdb_id    str | None
+wikipedia_url   str | None
 created_at      datetime    default now
 updated_at      datetime    default now, updated on save
 ```
@@ -316,10 +316,10 @@ Add `data/*.db` to `.gitignore`.
 ```python
 def get_fighter_data(fighter_name: str) -> dict:
     """
-    Scrape fighter data from Tapology and ONE Championship.
+    Fetch fiter data from Wikipedia and SportsDB.
     
     TODO:
-    - Search Tapology for the fighter
+    - Search Wikipedia for the fighter
     - Extract: record (W/L/KO), fight history, gym, nationality
     - Search ONE Championship site for additional data
     - Return raw combined dict

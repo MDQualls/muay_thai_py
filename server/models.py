@@ -15,8 +15,8 @@ class Fighter(SQLModel, table=True):
     record_wins: Optional[int] = Field(default=None)
     record_losses: Optional[int] = Field(default=None)
     record_kos: Optional[int] = Field(default=None)
-    tapology_url: Optional[str] = Field(default=None)
-    one_champ_url: Optional[str] = Field(default=None)
+    sportsdb_id: Optional[str] = Field(default=None)
+    wikipedia_url: Optional[str] = Field(default=None)
     # JSON-encoded list of fight history dicts from the scraper
     # e.g. '[{"opponent": "...", "result": "W", "method": "KO"}]'
     fight_history: Optional[str] = Field(default=None)
