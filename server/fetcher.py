@@ -1,7 +1,7 @@
 import logging
-import asyncio
 from typing import Any
 from server.service.wiki.wiki_searcher import WikiSearcher
+from server.service.wiki.wiki_content_getter import WikiContentGetter
 
 logger = logging.getLogger(__name__)
 
@@ -38,12 +38,18 @@ async def get_fighter_data(fighter_name: str) -> dict[str, Any]:
     logger.info("Fetching fighter data for: %s", fighter_name)
 
     try:
+        # search wikipedia for an article about the figher
         searcher = WikiSearcher(fighter_name)
-        r = await searcher.do_wiki_search()
+        search_result = await searcher.do_wiki_search()
+
+        # get the contents of the wikipedia article
+        getter = WikiContentGetter(search_result)
+        content = await getter.get_wiki_content()
+
     except Exception as e:
-        raise e
+        raise
     
     return {
         "name": fighter_name,
-        "wikipedia_extract": r,        
+        "wikipedia_extract": content,        
     }
