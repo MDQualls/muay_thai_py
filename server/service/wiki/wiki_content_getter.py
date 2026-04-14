@@ -11,8 +11,7 @@ class WikiContentGetter:
         "format": "json",
         "prop": "extracts",
         "pageids": "",      # ← pass the pageid directly from your search result
-        "explaintext": True,     # ← strips wiki markup, returns clean plain text
-        "exintro": False         # ← False gets the full article, True gets intro only
+        "explaintext": 1    # ← strips wiki markup, returns clean plain text
     }
 
 

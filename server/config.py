@@ -24,7 +24,7 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///data/muaythai.db"
 
     class Config:
-        env_file = ".env"
+        pass
 
 
 settings = Settings()

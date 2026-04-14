@@ -1,4 +1,3 @@
-import httpx
 import asyncio
 
 from server.fetcher import get_fighter_data
