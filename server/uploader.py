@@ -17,14 +17,14 @@ s3_client = boto3.client(
 )
 
 async def upload_carousel(card_paths: list[Path]) -> list[str]:
-    """Upload the card PNG to Cloudflare R2 and return a public URL.
+    """Upload the card JPEG to Cloudflare R2 and return a public URL.
 
     Args:
-        card_paths: Local paths to the cards' PNGs e.g. ["output/card.png","output/card.png",]
+        card_paths: Local paths to the cards' JPEGs e.g. ["output/card.jpg","output/card.jpg",]
 
     Returns:
         list[str] public URLs to the uploaded images
-        e.g. ["https://pub.r2.dev/card_slide1.png", ...]
+        e.g. ["https://pub.r2.dev/card_slide1.jpg", ...]
 
     """
     logger.info("Uploading cards to R2")

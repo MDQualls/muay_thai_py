@@ -8,7 +8,7 @@ Read it before touching any file.
 ## What This App Is
 
 A local web app that scrapes Muay Thai fighter data, enriches it with Claude AI, renders a
-styled fighter profile card as a PNG, and posts it to Instagram. It runs in Docker, served
+styled fighter profile card as a JPEG, and posts it to Instagram. It runs in Docker, served
 at localhost:8000 via FastAPI, with a vanilla JS frontend.
 
 ---
@@ -164,7 +164,7 @@ responsibilities across modules.
 |---|---|---|
 | `fetcher.py` | Wikipedia API + TheSportsDB API calls, raw data extraction | Any AI calls, any rendering |
 | `enricher.py` | Claude API calls, prompt building, response parsing | Any scraping, any file I/O |
-| `renderer.py` | Jinja2 templating, Playwright, PNG output | Any API calls, any data fetching |
+| `renderer.py` | Jinja2 templating, Playwright, JPEG output | Any API calls, any data fetching |
 | `uploader.py` | R2/S3 client, file upload, URL construction | Any rendering, any posting |
 | `publisher.py` | Meta Graph API calls, Instagram post creation | Any file I/O, any image work |
 | `api.py` | FastAPI routes, request validation, HTTP responses | Any business logic |
@@ -463,7 +463,7 @@ from datetime import datetime
 def make_output_path(fighter_name: str) -> Path:
     slug = fighter_name.lower().replace(" ", "_")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return Path("output") / f"{slug}_{timestamp}.png"
+    return Path("output") / f"{slug}_{timestamp}.jpg"
 ```
 
 Use `pathlib.Path` everywhere. Never concatenate file paths with string operations.

@@ -49,12 +49,12 @@ class FighterProfile(SQLModel, table=True):
 
 
 class Card(SQLModel, table=True):
-    """One row per generated fighter card PNG."""
+    """One row per generated fighter card JPEG."""
 
     id: Optional[int] = Field(default=None, primary_key=True)
     fighter_id: int = Field(foreign_key="fighter.id")
     profile_id: int = Field(foreign_key="fighterprofile.id")
-    # Path to the PNG file on disk e.g. "output/rodtang_20240101_120000.png"
+    # Path to the JPEG file on disk e.g. "output/rodtang_20240101_120000.jpg"
     local_path: str
     # Populated after the card is uploaded to Cloudflare R2
     r2_url: Optional[str] = Field(default=None)

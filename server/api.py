@@ -76,7 +76,7 @@ async def generate(
     TODO (after stubs are implemented):
     - Upsert a Fighter row for request.fighter_name
     - Save a FighterProfile row linked to the Fighter
-    - Save a Card row with the local PNG path
+    - Save a Card row with the local JPEG path
     """
     try:
         logger.info("Generating card for fighter: %s", request.fighter_name)
@@ -107,7 +107,7 @@ async def generate(
 
 @app.get("/preview")
 async def preview() -> FileResponse:
-    """Return the most recently generated card PNG.
+    """Return the most recently generated card JPEG.
 
     TODO:
     - Query the Card table for the most recent row (order by created_at DESC)
@@ -132,7 +132,7 @@ async def post(
     try:
         # TODO: get latest card_path from DB
         # TODO: update to support carousel posting (multiple images via Media Container API)
-        card_path = "output/card.png"  # placeholder
+        card_path = "output/card.jpg"  # placeholder
 
         image_url = await uploader.upload_card(card_path)
         instagram_post_id = await publisher.post_to_instagram(image_url, request.caption)

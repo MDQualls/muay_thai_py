@@ -84,7 +84,7 @@ muaythai-cards/
 - Port mapping: `8000:8000`
 - Mount volumes:
   - `.:/app` — for hot reload (source code)
-  - `./output:/app/output` — so generated card PNGs persist outside the container
+  - `./output:/app/output` — so generated card JPEGs persist outside the container
   - `./data:/app/data` — so the SQLite database file persists outside the container
 - Load env from `.env` file
 - Restart policy: `unless-stopped`
@@ -159,10 +159,10 @@ Pipeline stub — should call (in order):
 2. `enricher.enrich_fighter(raw_data)`
 3. `renderer.render_card(enriched_data)`
 
-Return: `{ "status": "ok", "card_path": "output/card.png", "caption": "..." }`
+Return: `{ "status": "ok", "card_path": "output/card.jpg", "caption": "..." }`
 
 **`GET /preview`**
-Return the most recently generated card PNG as a `FileResponse`
+Return the most recently generated card JPEG as a `FileResponse`
 
 **`POST /post`**
 Accept JSON body: `{ "caption": "string" }`
@@ -217,13 +217,13 @@ fun_fact            str | None
 created_at          datetime    default now
 ```
 
-**`Card`** — one row per generated card PNG
+**`Card`** — one row per generated card JPEG
 
 ```
 id              int         primary key, auto
 fighter_id      int         foreign key → Fighter.id
 profile_id      int         foreign key → FighterProfile.id
-local_path      str         path to PNG in output/
+local_path      str         path to JPEG in output/
 r2_url          str | None  populated after upload
 caption         str | None  Claude-generated caption
 created_at      datetime    default now
@@ -285,7 +285,7 @@ The `/generate` route should also:
 - After a successful generate, check if this fighter already exists in the DB
   (look up by name) and upsert the Fighter row
 - Save the FighterProfile row linked to the Fighter
-- Save the Card row with the local PNG path
+- Save the Card row with the local JPEG path
 - TODO comments for each of these steps — the developer will write the actual DB calls
 
 The `/post` route should also:
@@ -370,21 +370,21 @@ def enrich_fighter(raw_data: dict) -> dict:
 ```python
 def render_card(enriched_data: dict) -> str:
     """
-    Render the fighter card HTML template and screenshot to PNG via Playwright.
+    Render the fighter card HTML template and screenshot to JPEG via Playwright.
     
     TODO:
     - Load templates/card.html using Jinja2
     - Inject enriched_data into template
     - Launch Playwright (Chromium, headless)
     - Navigate to rendered HTML
-    - Screenshot to output/card.png at 1080x1080
-    - Return path to the PNG
+    - Screenshot to output/card.jpg at 1080x1080
+    - Return path to the JPEG
     
     Args:
         enriched_data: dict returned from enricher.enrich_fighter()
     
     Returns:
-        str path to generated PNG e.g. "output/card.png"
+        str path to generated JPEG e.g. "output/card.jpg"
     """
     pass
 ```
@@ -396,16 +396,16 @@ def render_card(enriched_data: dict) -> str:
 ```python
 def upload_card(card_path: str) -> str:
     """
-    Upload the card PNG to Cloudflare R2 and return a public URL.
+    Upload the card JPEG to Cloudflare R2 and return a public URL.
     
     TODO:
     - Use boto3 with R2 credentials from env
     - Upload card_path to R2_BUCKET_NAME
-    - Filename should be timestamped e.g. card_20240101_120000.png
+    - Filename should be timestamped e.g. card_20240101_120000.jpg
     - Return the public URL using R2_PUBLIC_URL + filename
     
     Args:
-        card_path: Local path to the card PNG
+        card_path: Local path to the card JPEG
     
     Returns:
         str public URL to the uploaded image
@@ -521,7 +521,7 @@ Include:
 
 Standard Python gitignore plus:
 - `.env`
-- `output/*.png`
+- `output/*.jpg`
 - `__pycache__`
 - `.DS_Store`
 

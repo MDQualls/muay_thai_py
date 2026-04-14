@@ -5,7 +5,7 @@
 This app generates Muay Thai fighter profile cards and posts them to Instagram.
 The pipeline is: fetcher → enricher → renderer → uploader → publisher.
 
-The renderer currently produces a single 1080x1080 PNG from `templates/card.html`.
+The renderer currently produces a single 1080x1080 JPEG from `templates/card.html`.
 We are converting to a **3-slide Instagram carousel** because the single card has too
 much content for the font sizes to be readable on a phone screen.
 
@@ -219,7 +219,7 @@ async def render_slide(
     template_name: str,
     slide_num: int
 ) -> Path:
-    """Render a single carousel slide to PNG.
+    """Render a single carousel slide to JPEG.
 
     Args:
         enriched_data: dict returned from enricher.enrich_fighter()
@@ -227,7 +227,7 @@ async def render_slide(
         slide_num: 1, 2, or 3 — used in the output filename
 
     Returns:
-        Path to the generated PNG
+        Path to the generated JPEG
 
     TODO:
     - Load template from templates/ using Jinja2 FileSystemLoader
@@ -252,7 +252,7 @@ Update the existing `make_output_path` to accept `slide_num`:
 def make_output_path(fighter_name: str, slide_num: int) -> Path:
     slug = fighter_name.lower().replace(" ", "_")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return Path("output") / f"{slug}_{timestamp}_slide{slide_num}.png"
+    return Path("output") / f"{slug}_{timestamp}_slide{slide_num}.jpg"
 ```
 
 ---

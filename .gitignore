@@ -2,7 +2,7 @@
 .env
 
 # Generated output
-output/*.png
+output/*
 
 # Database
 data/*.db

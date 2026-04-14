@@ -31,7 +31,7 @@ async def render_slide(
     template_name: str,
     slide_num: int,
 ) -> Path:
-    """Render a single carousel slide to PNG.
+    """Render a single carousel slide to JPEG.
 
     Args:
         enriched_data: dict returned from enricher.enrich_fighter()
@@ -39,7 +39,7 @@ async def render_slide(
         slide_num: 1, 2, or 3 — used in the output filename
 
     Returns:
-        Path to the generated PNG
+        Path to the generated JPEG
     """
     try:
         env = Environment(loader=FileSystemLoader("templates"))
@@ -49,12 +49,12 @@ async def render_slide(
 
         output_path = make_output_path(enriched_data.get("name"), slide_num)
 
-        async with async_playwright() as p:
+        async with async_playwright( ) as p:
             browser = await p.chromium.launch()
             page = await browser.new_page()
             await page.set_viewport_size({"width": 1080, "height": 1080})
             await page.set_content(html, wait_until="networkidle")
-            await page.screenshot(path=str(output_path), full_page=False)
+            await page.screenshot(path=str(output_path), full_page=False, type="jpeg", quality=95)
             await browser.close()
 
         return output_path
@@ -65,15 +65,15 @@ async def render_slide(
 
 
 def make_output_path(fighter_name: str, slide_num: int) -> Path:
-    """Generate a timestamped output path for a carousel slide PNG.
+    """Generate a timestamped output path for a carousel slide JPEG.
 
     Args:
         fighter_name: Fighter's full name e.g. "Rodtang Jitmuangnon"
         slide_num: Slide number 1, 2, or 3
 
     Returns:
-        Path e.g. "output/rodtang_jitmuangnon_20240101_120000_slide1.png"
+        Path e.g. "output/rodtang_jitmuangnon_20240101_120000_slide1.jpg"
     """
     slug = fighter_name.lower().replace(" ", "_")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return Path("output") / f"{slug}_{timestamp}_slide{slide_num}.png"
+    return Path("output") / f"{slug}_{timestamp}_slide{slide_num}.jpg"

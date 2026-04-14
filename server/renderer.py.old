@@ -10,13 +10,13 @@ logger = logging.getLogger(__name__)
 
 
 async def render_card(enriched_data: dict[str, Any]) -> Path:
-    """Render the fighter card HTML template and screenshot it to PNG via Playwright.
+    """Render the fighter card HTML template and screenshot it to JPEG via Playwright.
 
     Args:
         enriched_data: dict returned from enricher.enrich_fighter()
 
     Returns:
-        str path to the generated PNG e.g. "output/rodtang_20240101_120000.png"
+        str path to the generated JPEG e.g. "output/rodtang_20240101_120000.jpg"
 
     """
     logger.info("Rendering card for fighter: %s", enriched_data.get("name"))
@@ -47,15 +47,15 @@ async def render_card(enriched_data: dict[str, Any]) -> Path:
 
 
 def make_output_path(fighter_name: str) -> Path:
-    """Generate a timestamped output path for a fighter card PNG.
+    """Generate a timestamped output path for a fighter card JPEG.
 
     Args:
         fighter_name: Fighter's full name e.g. "Rodtang Jitmuangnon"
 
     Returns:
-        str path e.g. "output/rodtang_jitmuangnon_20240101_120000.png"
+        str path e.g. "output/rodtang_jitmuangnon_20240101_120000.jpg"
     """
 
     slug = fighter_name.lower().replace(" ", "_")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return Path("output") / f"{slug}_{timestamp}.png"
+    return Path("output") / f"{slug}_{timestamp}.jpg"

@@ -1,11 +1,13 @@
 import logging
+import httpx
+from server.config import settings
 
 logger = logging.getLogger(__name__)
 
 GRAPH_API_BASE = "https://graph.facebook.com/v19.0"
 
 
-async def post_to_instagram(image_url: str, caption: str) -> str:
+async def post_carousel(image_urls: list[str], caption: str) -> str:
     """Post an image to Instagram via the Meta Graph API.
 
     Args:
@@ -31,5 +33,5 @@ async def post_to_instagram(image_url: str, caption: str) -> str:
     """
     logger.info("Posting to Instagram: %s", image_url[:60])
 
-    # TODO: implement Meta Graph API calls
+    
     return "placeholder_instagram_post_id"
