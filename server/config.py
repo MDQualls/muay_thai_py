@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     r2_secret_access_key: str = ""
     r2_bucket_name: str = ""
     r2_public_url: str = ""
+    r2_endpoint_url: str = ""
 
     # Database
     database_url: str = "sqlite:///data/muaythai.db"
