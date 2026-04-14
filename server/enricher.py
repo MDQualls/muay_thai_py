@@ -1,15 +1,13 @@
 import logging
 import anthropic
 import json
-from server.service.enrich.enrichment_handler import EnrichmentHandlder
+from server.service.enrich.enrichment_handler import EnrichmentHandler
 from server.service.enrich.prompter import Prompter
 from typing import Any
 from server.config import settings
 from server.exceptions import EnrichmentError
 
 logger = logging.getLogger(__name__)
-
-client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
 
 
 async def enrich_fighter(raw_data: dict[str, Any]) -> dict[str, Any]:
@@ -37,8 +35,8 @@ async def enrich_fighter(raw_data: dict[str, Any]) -> dict[str, Any]:
         logger.warning(msg)
         raise ValueError(msg)
 
-    enrichmentHandler = EnrichmentHandlder()
-    message = await enrichmentHandler.enrich(extract)
+    handler = EnrichmentHandler()
+    message = await handler.enrich(extract)
     
     try:
         text = message.content[0].text.strip()

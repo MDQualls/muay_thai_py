@@ -4,15 +4,15 @@ from server.config import settings
 from typing import Any
 from server.service.enrich.prompter import Prompter
 
+client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
 
-class EnrichmentHandlder:
+class EnrichmentHandler:
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
-        self.client = anthropic.AsyncAnthropic(api_key=settings.anthropic_api_key)
         self.prompter = Prompter()
 
-    async def enrich(self, extract: dict) -> dict[str, Any]:
+    async def enrich(self, extract: dict) -> anthropic.types.Message:
         
         prompt = self.prompter.build_prompt(extract)
 
@@ -21,7 +21,7 @@ class EnrichmentHandlder:
             self.logger.warning(msg)
             raise ValueError(msg)
 
-        message = await self.client.messages.create(
+        message = await client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=1024,
             messages=[
