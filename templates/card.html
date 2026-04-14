@@ -287,8 +287,10 @@
         {% endif %}
       </div>
       <div class="fighter-meta">
-        <div class="record">{{ fighter.record_wins }}-{{ fighter.record_losses }}</div>
-        <div class="record-label">W — L</div>
+        {% if fighter.record_wins %}
+          <div class="record">{{ fighter.record_wins }}-{{ fighter.record_losses }}</div>
+          <div class="record-label">W — L</div>
+        {% endif %}
         {% if fighter.record_kos %}
         <div class="fighter-details">KO <span>{{ fighter.record_kos }}</span></div>
         {% endif %}

@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ fighter.name }} — Slide 3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Oswald:wght@400;600;700&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 1080px;
+      height: 1080px;
+      overflow: hidden;
+      background-color: #0d0d1a;
+      font-family: 'Inter', sans-serif;
+      color: #ffffff;
+    }
+
+    .card {
+      width: 1080px;
+      height: 1080px;
+      background: linear-gradient(135deg, #0d0d1a 0%, #1a1a2e 50%, #16213e 100%);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      padding: 56px;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, #e63946, #ff6b35, #e63946);
+    }
+
+    /* Slide header — fighter name + thin red divider */
+    .slide-header {
+      margin-bottom: 40px;
+    }
+
+    .fighter-name {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 56px;
+      line-height: 1;
+      color: #ffffff;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .header-divider {
+      height: 1px;
+      background: linear-gradient(90deg, #e63946, transparent);
+    }
+
+    /* Main content column */
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .section-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 5px;
+      color: #e63946;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+    }
+
+    .bio {
+      font-family: 'Inter', sans-serif;
+      font-size: 25px;
+      font-weight: 400;
+      line-height: 1.85;
+      color: #cccccc;
+      margin-bottom: 48px;
+    }
+
+    .fun-fact-box {
+      background: rgba(255, 107, 53, 0.08);
+      border-left: 4px solid #ff6b35;
+      border-radius: 0 8px 8px 0;
+      padding: 28px 32px;
+    }
+
+    .fun-fact-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 4px;
+      color: #ff6b35;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .fun-fact-text {
+      font-family: 'Inter', sans-serif;
+      font-size: 22px;
+      font-weight: 400;
+      line-height: 1.75;
+      color: #bbbbbb;
+    }
+
+    /* Source credit pushed to bottom of main-content, just above footer */
+    .source-credit {
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 400;
+      color: #444444;
+      margin-top: auto;
+      padding-top: 16px;
+    }
+
+    /* Footer */
+    .footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      margin-top: 24px;
+      padding-top: 20px;
+      border-top: 1px solid #1e1e35;
+    }
+
+    .app-brand {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 22px;
+      letter-spacing: 3px;
+      color: #444444;
+      text-transform: uppercase;
+    }
+
+    .slide-indicator {
+      font-family: 'Oswald', sans-serif;
+      font-size: 16px;
+      font-weight: 400;
+      color: #555555;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+
+    <div class="slide-header">
+      <div class="fighter-name">{{ fighter.name }}</div>
+      <div class="header-divider"></div>
+    </div>
+
+    <div class="main-content">
+      <div class="section-label">Fighter Profile</div>
+
+      <div class="bio">{{ fighter.bio }}</div>
+
+      <div class="fun-fact-box">
+        <div class="fun-fact-label">Did You Know</div>
+        <div class="fun-fact-text">{{ fighter.fun_fact }}</div>
+      </div>
+
+      {% if fighter.wikipedia_url %}
+      <div class="source-credit">Source: Wikipedia</div>
+      {% endif %}
+    </div>
+
+    <div class="footer">
+      <div class="app-brand">Muay Thai Cards</div>
+      <div class="slide-indicator">3 / 3</div>
+    </div>
+
+  </div>
+</body>
+</html>

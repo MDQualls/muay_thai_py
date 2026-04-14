@@ -9,12 +9,15 @@ class Prompter:
 
             - Fighting style is an important factor
             - Look for clear phases that would suggest signature weapons and attributes
-            - Be sure to notice importantant carerr moments that would enhance the bio
+            - Be sure to notice importantant career moments that would enhance the bio
             - Find something unique or interesting about this fighter that would make a good fun fact.
             - "fun_fact" should be one sentence maximum, no longer than 30 words
             - "name" should be the fighter's professional fight name, not their legal birth name
             - "nickname" should be their ring nickname or moniker (e.g. "The Iron Man"), not their legal name
             - "nickname" should only be included if it is explicitly mentioned in the provided content. 
+            - "career_highlight" should be a short punchy phrase of 4-8 words maximum that captures the fighter's single most defining achievement.
+                - Examples: "5x ONE Championship Title Defenses", "Longest-Reigning ONE Flyweight Champion","14-Fight WIN Streak in ONE Championship"
+                - Format it like a stat callout — uppercase-friendly, no punctuation at the end.
             - If no nickname is found in the content, return null for this field. Do not invent or infer a nickname.
             - For numeric fields like record_wins, record_losses, record_kos, only use numbers explicitly stated in the content. If not clearly stated, return null.
             - Return ONLY a valid JSON object matching the example_output structure below.
@@ -46,6 +49,7 @@ class Prompter:
                 }},
                 "bio": "Somchai Sor Lookjaomaesai is one of the most feared clinch fighters in the sport, having dominated the 63kg division across Thailand's major stadiums for nearly a decade. Known for his relentless forward pressure and devastating horizontal elbows, he has finished over a third of his opponents and holds notable wins over three former Lumpinee champions. His iron chin and elite cardio make him notoriously difficult to stop late in fights.",
                 "fun_fact": "Somchai began training at age six and won his first professional fight at thirteen, earning enough to help his family buy their first motorcycle.",
+                "career_highlight": "Longest winning streak in ONE Championship (14)"
             }}
             </example_output>
 

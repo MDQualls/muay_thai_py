@@ -42,7 +42,7 @@ class GenerateRequest(BaseModel):
 
 class GenerateResponse(BaseModel):
     status: str
-    card_path: str
+    card_paths: list[str]   # was: card_path: str
     caption: str
 
 
@@ -83,15 +83,15 @@ async def generate(
 
         raw_data = await fetcher.get_fighter_data(request.fighter_name)
         enriched_data = await enricher.enrich_fighter(raw_data)
-        card_path = await renderer.render_card(enriched_data)
+        card_paths = await renderer.render_carousel(enriched_data)
 
         # TODO: upsert Fighter row in DB
         # TODO: save FighterProfile row linked to fighter
-        # TODO: save Card row with local_path=card_path
+        # TODO: save Card rows with local_path for each slide
 
         return GenerateResponse(
             status="ok",
-            card_path=card_path,
+            card_paths=[str(p) for p in card_paths],
             caption=enriched_data.get("bio", ""),
         )
     except FetchError as e:
@@ -131,6 +131,7 @@ async def post(
     """
     try:
         # TODO: get latest card_path from DB
+        # TODO: update to support carousel posting (multiple images via Media Container API)
         card_path = "output/card.png"  # placeholder
 
         image_url = await uploader.upload_card(card_path)

@@ -1,50 +1,79 @@
 import logging
 from typing import Any
+from datetime import datetime
+from pathlib import Path
+from jinja2 import Environment, FileSystemLoader
+from playwright.async_api import async_playwright
+
+from server.exceptions import RenderError
 
 logger = logging.getLogger(__name__)
 
 
-async def render_card(enriched_data: dict[str, Any]) -> str:
-    """Render the fighter card HTML template and screenshot it to PNG via Playwright.
+async def render_carousel(enriched_data: dict[str, Any]) -> list[Path]:
+    """Render all three carousel slides and return their paths.
 
     Args:
         enriched_data: dict returned from enricher.enrich_fighter()
 
     Returns:
-        str path to the generated PNG e.g. "output/rodtang_20240101_120000.png"
+        list of 3 Paths in order: [impact_path, stats_path, story_path]
+    """    
+    paths = []
+    for slide_num, template_name in enumerate(["slide_1_impact.html", "slide_2_stats.html", "slide_3_story.html"], 1):
+        path = await render_slide(enriched_data, template_name, slide_num)
+        paths.append(path)
+    return paths
 
-    TODO:
-    - Create a Jinja2 Environment pointed at the templates/ directory
-    - Load templates/card.html and render it with enriched_data
-    - Write the rendered HTML to a temp file (or use a data: URI)
-    - Use make_output_path() from this module to generate the output filename
-    - Launch Playwright async API: async with async_playwright() as p
-    - Launch Chromium headless, open a new page
-    - Set viewport to 1080x1080
-    - Navigate to the rendered HTML file (use file:// URI)
-    - page.screenshot(path=output_path, full_page=False)
-    - Close browser
-    - Return the output path as a string
-    - Raise RenderError on any Playwright or template failure
+
+async def render_slide(
+    enriched_data: dict[str, Any],
+    template_name: str,
+    slide_num: int,
+) -> Path:
+    """Render a single carousel slide to PNG.
+
+    Args:
+        enriched_data: dict returned from enricher.enrich_fighter()
+        template_name: filename of the template e.g. "slide_1_impact.html"
+        slide_num: 1, 2, or 3 — used in the output filename
+
+    Returns:
+        Path to the generated PNG
     """
-    logger.info("Rendering card for fighter: %s", enriched_data.get("name"))
+    try:
+        env = Environment(loader=FileSystemLoader("templates"))
+        template = env.get_template(template_name)
 
-    # TODO: implement Playwright rendering
-    return "output/card.png"
+        html = template.render(fighter=enriched_data, slide_num=slide_num, total_slides=3)
+
+        output_path = make_output_path(enriched_data.get("name"), slide_num)
+
+        async with async_playwright() as p:
+            browser = await p.chromium.launch()
+            page = await browser.new_page()
+            await page.set_viewport_size({"width": 1080, "height": 1080})
+            await page.set_content(html, wait_until="networkidle")
+            await page.screenshot(path=str(output_path), full_page=False)
+            await browser.close()
+
+        return output_path
+
+    except Exception as e:
+        logger.error("Failed to render card for '%s': %s", enriched_data.get("name"), e)
+        raise RenderError(f"Card rendering failed: {e}") from e
 
 
-def make_output_path(fighter_name: str) -> str:
-    """Generate a timestamped output path for a fighter card PNG.
+def make_output_path(fighter_name: str, slide_num: int) -> Path:
+    """Generate a timestamped output path for a carousel slide PNG.
 
     Args:
         fighter_name: Fighter's full name e.g. "Rodtang Jitmuangnon"
+        slide_num: Slide number 1, 2, or 3
 
     Returns:
-        str path e.g. "output/rodtang_jitmuangnon_20240101_120000.png"
+        Path e.g. "output/rodtang_jitmuangnon_20240101_120000_slide1.png"
     """
-    from datetime import datetime
-    from pathlib import Path
-
     slug = fighter_name.lower().replace(" ", "_")
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return str(Path("output") / f"{slug}_{timestamp}.png")
+    return Path("output") / f"{slug}_{timestamp}_slide{slide_num}.png"
