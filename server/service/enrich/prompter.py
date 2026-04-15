@@ -20,6 +20,9 @@ class Prompter:
                 - Format it like a stat callout — uppercase-friendly, no punctuation at the end.
             - If no nickname is found in the content, return null for this field. Do not invent or infer a nickname.
             - For numeric fields like record_wins, record_losses, record_kos, only use numbers explicitly stated in the content. If not clearly stated, return null.
+            - "hashtags" should be a list of 8-12 relevant hashtags for this fighter without the # symbol.
+                - Include: the fighter's name (no spaces), their gym, their nationality style, their promotion, and relevant martial arts tags. Do not include generic tags like "sport" or "fighting".
+                - Example: ["Rodtang", "MuayThai", "ONEChampionship", "JitmuangnongGym", "ThaiBoxing"]
             - Return ONLY a valid JSON object matching the example_output structure below.
             - No markdown fences, no explanation, no preamble. JSON only.
 
@@ -49,7 +52,8 @@ class Prompter:
                 }},
                 "bio": "Somchai Sor Lookjaomaesai is one of the most feared clinch fighters in the sport, having dominated the 63kg division across Thailand's major stadiums for nearly a decade. Known for his relentless forward pressure and devastating horizontal elbows, he has finished over a third of his opponents and holds notable wins over three former Lumpinee champions. His iron chin and elite cardio make him notoriously difficult to stop late in fights.",
                 "fun_fact": "Somchai began training at age six and won his first professional fight at thirteen, earning enough to help his family buy their first motorcycle.",
-                "career_highlight": "Longest winning streak in ONE Championship (14)"
+                "career_highlight": "Longest winning streak in ONE Championship (14)",
+                "hashtags": ["Rodtang", "MuayThai", "ONEChampionship", "JitmuangnongGym", "ThaiBoxing"]
             }}
             </example_output>
 

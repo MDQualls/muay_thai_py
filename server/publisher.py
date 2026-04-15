@@ -1,6 +1,8 @@
 import logging
 import httpx
 from server.config import settings
+from server.exceptions import PublishError
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -11,27 +13,76 @@ async def post_carousel(image_urls: list[str], caption: str) -> str:
     """Post an image to Instagram via the Meta Graph API.
 
     Args:
-        image_url: Public URL to the card image (returned by uploader.upload_card)
-        caption: Instagram caption text (Claude-generated or user-edited)
+        iimage_urls: List of public URLs to the carousel slide images (3 items)
+        caption: Instagram caption text
 
     Returns:
         str Instagram post ID returned by the Graph API
-
-    TODO:
-    Step 1 — Create a media container:
-        POST {GRAPH_API_BASE}/{settings.meta_instagram_account_id}/media
-        params: image_url=image_url, caption=caption, access_token=settings.meta_access_token
-        Parse and store container_id from response JSON: response["id"]
-
-    Step 2 — Publish the container:
-        POST {GRAPH_API_BASE}/{settings.meta_instagram_account_id}/media_publish
-        params: creation_id=container_id, access_token=settings.meta_access_token
-        Parse and return post_id from response JSON: response["id"]
-
-    - Use httpx.AsyncClient for both requests
-    - Raise PublishError on non-200 responses or missing "id" in response
     """
-    logger.info("Posting to Instagram: %s", image_url[:60])
+    logger.info("Posting to Instagram")
 
-    
-    return "placeholder_instagram_post_id"
+    async with httpx.AsyncClient() as client:
+
+        # Create item containers (one per slide)
+        containers = []
+        for image_url in image_urls:
+            post_url = f"{GRAPH_API_BASE}/{settings.meta_instagram_account_id}/media"
+            item_response = await client.post(post_url, params={
+                            "image_url": image_url,
+                            "is_carousel_item": "true",
+                            "access_token": settings.meta_access_token,
+                        })
+            data = item_response.json()
+            if item_response.status_code != 200:
+                raise PublishError(f"Graph API returned {item_response.status_code}: {data}")
+            if "error" in data:
+                raise PublishError(f"Graph API error creating container: {data['error']['message']}")
+            if "id" not in data:
+                raise PublishError(f"No container ID returned for {image_url}")
+            containers.append(data["id"])
+            logger.info("Created item container for slide: %s", data["id"])
+
+        # Wait for Instagram to process the media before creating carousel
+        logger.info("Waiting for Instagram to process media...")
+        await asyncio.sleep(5)
+
+        
+        # Create the carousel container
+        post_url = f"{GRAPH_API_BASE}/{settings.meta_instagram_account_id}/media"
+        container_response = await client.post(post_url, params={
+            "media_type": "CAROUSEL",
+            "children": ",".join(containers),
+            "caption": caption,
+            "access_token": settings.meta_access_token
+        })
+        carousel_data = container_response.json()
+        if container_response.status_code != 200:
+            raise PublishError(f"Graph API returned {container_response.status_code}: {carousel_data}")
+        if "error" in carousel_data:
+            raise PublishError(f"Graph API error creating carousel: {carousel_data['error']['message']}")
+        if "id" not in carousel_data:
+            raise PublishError("No carousel container ID returned")
+        carousel_id = carousel_data["id"]
+        logger.info("Created carousel container: %s", carousel_id)
+
+        # Wait for carousel container to be ready before publishing
+        logger.info("Waiting for carousel container to be ready...")
+        await asyncio.sleep(5)
+
+        # Publish the carousel
+        post_url = f"{GRAPH_API_BASE}/{settings.meta_instagram_account_id}/media_publish"
+        publish_response = await client.post(post_url, params={
+                            "creation_id": carousel_id,
+                            "access_token": settings.meta_access_token,
+                        })
+        
+        data = publish_response.json()        
+        if publish_response.status_code != 200:
+            raise PublishError(f"Graph API returned {publish_response.status_code}: {data}")
+        if "error" in data:
+            raise PublishError(f"Graph API error: {data['error']['message']}")
+        if "id" not in data:
+            raise PublishError(f"Graph API returned no ID in response: {data}")
+        logger.info("Published carousel post: %s", data["id"])
+            
+    return data["id"]
