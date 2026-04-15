@@ -1,12 +1,16 @@
+import asyncio
 import logging
+
 import httpx
+
 from server.config import settings
 from server.exceptions import PublishError
-import asyncio
 
 logger = logging.getLogger(__name__)
 
 GRAPH_API_BASE = "https://graph.facebook.com/v25.0"
+POLL_INTERVAL_SECONDS = 2.0
+MAX_POLL_ATTEMPTS = 15  # 15 × 2s = 30s max wait per container
 
 
 async def post_carousel(image_urls: list[str], caption: str) -> str:
@@ -24,7 +28,7 @@ async def post_carousel(image_urls: list[str], caption: str) -> str:
     media_url = f"{GRAPH_API_BASE}/{settings.meta_instagram_account_id}/media"
     publish_url = f"{GRAPH_API_BASE}/{settings.meta_instagram_account_id}/media_publish"
 
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(timeout=30.0) as client:
 
         # Step 1 — item containers
         containers = []
@@ -34,10 +38,10 @@ async def post_carousel(image_urls: list[str], caption: str) -> str:
                 "is_carousel_item": "true",
                 "access_token": settings.meta_access_token,
             }, error_context="item container")
-            containers.append(data["id"])
-            logger.info("Created item container: %s", data["id"])
-
-        await asyncio.sleep(5)
+            container_id = data["id"]
+            logger.info("Created item container: %s", container_id)
+            await _wait_for_container(client, container_id)
+            containers.append(container_id)
 
         # Step 2 — carousel container
         data = await _post(client, media_url, {
@@ -48,8 +52,7 @@ async def post_carousel(image_urls: list[str], caption: str) -> str:
         }, error_context="carousel container")
         carousel_id = data["id"]
         logger.info("Created carousel container: %s", carousel_id)
-
-        await asyncio.sleep(5)
+        await _wait_for_container(client, carousel_id)
 
         # Step 3 — publish
         data = await _post(client, publish_url, {
@@ -59,6 +62,52 @@ async def post_carousel(image_urls: list[str], caption: str) -> str:
         logger.info("Published carousel post: %s", data["id"])
 
     return data["id"]
+
+
+async def _wait_for_container(
+    client: httpx.AsyncClient,
+    container_id: str,
+) -> None:
+    """Poll the Graph API until a media container reaches FINISHED status.
+
+    Args:
+        client: Shared httpx async client.
+        container_id: The Media Container ID returned by a previous creation call.
+
+    Raises:
+        PublishError: If the container enters an error state or times out.
+    """
+    url = f"{GRAPH_API_BASE}/{container_id}"
+    params = {
+        "fields": "status_code,status",
+        "access_token": settings.meta_access_token,
+    }
+
+    for attempt in range(1, MAX_POLL_ATTEMPTS + 1):
+        response = await client.get(url, params=params)
+        data = response.json()
+
+        if response.status_code != 200 or "error" in data:
+            raise PublishError(f"Container status check failed for {container_id}: {data}")
+
+        status_code = data.get("status_code")
+        logger.info(
+            "Container %s: %s (attempt %d/%d)",
+            container_id, status_code, attempt, MAX_POLL_ATTEMPTS,
+        )
+
+        if status_code == "FINISHED":
+            return
+        if status_code in ("ERROR", "EXPIRED"):
+            raise PublishError(
+                f"Container {container_id} failed with status {status_code}: {data.get('status')}"
+            )
+
+        await asyncio.sleep(POLL_INTERVAL_SECONDS)
+
+    raise PublishError(
+        f"Container {container_id} did not reach FINISHED after {MAX_POLL_ATTEMPTS} attempts"
+    )
 
 
 async def _post(

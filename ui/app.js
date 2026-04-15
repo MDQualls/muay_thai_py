@@ -77,8 +77,71 @@ function resetSteps() {
 generateBtn.addEventListener('click', async () => {
   const fighterName = fighterInput.value.trim();
 
-  // TODO: implement generate flow (see steps above)
-  console.log('Generate clicked for:', fighterName);
+  if (!fighterName) {
+    showStatus('Enter a fighter name first.', 'error');
+    return;
+  }
+
+  hideStatus();
+  progressSection.classList.remove('hidden');
+  previewSection.classList.add('hidden');
+  resetSteps();
+  generateBtn.disabled = true;
+
+  setStep(stepScrape, 'active');
+  let currentStep = stepScrape;
+
+  const enrichTimer = setTimeout(() => {
+    setStep(stepScrape, 'done');
+    setStep(stepEnrich, 'active');
+    currentStep = stepEnrich;
+  }, 3000);
+
+  const renderTimer = setTimeout(() => {
+    setStep(stepEnrich, 'done');
+    setStep(stepRender, 'active');
+    currentStep = stepRender;
+  }, 8000);
+
+  try {
+    const response = await fetch('/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fighter_name: fighterName }),
+    });
+
+    clearTimeout(enrichTimer);
+    clearTimeout(renderTimer);
+
+    if (!response.ok) {
+      const err = await response.json();
+      setStep(currentStep, 'error');
+      showStatus(err.detail || 'Generation failed.', 'error');
+      return;
+    }
+
+    const data = await response.json();
+
+    setStep(stepScrape, 'done');
+    setStep(stepEnrich, 'done');
+    setStep(stepRender, 'done');
+
+    cardPreview.src = `/preview?t=${Date.now()}`;
+    captionInput.value = data.caption;
+
+    setTimeout(() => {
+      progressSection.classList.add('hidden');
+      previewSection.classList.remove('hidden');
+    }, 800);
+
+  } catch (err) {
+    clearTimeout(enrichTimer);
+    clearTimeout(renderTimer);
+    setStep(currentStep, 'error');
+    showStatus('Network error. Is the server running?', 'error');
+  } finally {
+    generateBtn.disabled = false;
+  }
 });
 
 fighterInput.addEventListener('keydown', (e) => {
@@ -103,6 +166,32 @@ fighterInput.addEventListener('keydown', (e) => {
 postBtn.addEventListener('click', async () => {
   const caption = captionInput.value.trim();
 
-  // TODO: implement post flow (see steps above)
-  console.log('Post clicked with caption:', caption);
+  postBtn.disabled = true;
+  postBtn.textContent = 'Posting...';
+  postBtn.classList.add('btn-loading');
+  hideStatus();
+
+  try {
+    const response = await fetch('/post', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ caption: caption || null }),
+    });
+
+    if (!response.ok) {
+      const err = await response.json();
+      showStatus(err.detail || 'Post failed.', 'error');
+      return;
+    }
+
+    const data = await response.json();
+    showStatus(`Posted to Instagram — ID: ${data.instagram_post_id}`, 'success');
+
+  } catch (err) {
+    showStatus('Network error. Is the server running?', 'error');
+  } finally {
+    postBtn.disabled = false;
+    postBtn.textContent = 'Post to Instagram';
+    postBtn.classList.remove('btn-loading');
+  }
 });

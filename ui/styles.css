@@ -288,6 +288,26 @@ html, body {
 }
 
 /* ============================================================
+   Button loading state
+   ============================================================ */
+@keyframes btn-spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn-loading::after {
+  content: '';
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: btn-spin 0.7s linear infinite;
+  margin-left: 10px;
+  vertical-align: middle;
+}
+
+/* ============================================================
    Utilities
    ============================================================ */
 .hidden {
