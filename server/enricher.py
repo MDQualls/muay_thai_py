@@ -1,10 +1,7 @@
 import logging
-import anthropic
 import json
 from server.service.enrich.enrichment_handler import EnrichmentHandler
-from server.service.enrich.prompter import Prompter
 from typing import Any
-from server.config import settings
 from server.exceptions import EnrichmentError
 
 logger = logging.getLogger(__name__)

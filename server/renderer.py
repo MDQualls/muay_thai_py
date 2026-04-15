@@ -1,10 +1,12 @@
+import logging
 from typing import Any
-from datetime import datetime
 from pathlib import Path
 from server.service.render.template_renderer import TemplateRenderer
 from server.service.render.screenshot_handler import ScreenshotHandler
 from server.service.path_handler import PathHandler
 from server.exceptions import RenderError
+
+logger = logging.getLogger(__name__)
 
 
 async def render_carousel(enriched_data: dict[str, Any]) -> list[Path]:
@@ -50,4 +52,5 @@ async def render_slide(
         return output_path
 
     except Exception as e:
+        logger.error("Failed to render card: %s", e)
         raise RenderError(f"Card rendering failed: {e}") from e

@@ -7,7 +7,7 @@ from server.publisher import post_carousel
 from server.caption_builder import build_caption
 
 async def main() -> None:
-    raw_data = await get_fighter_data("Rodtang")
+    raw_data = await get_fighter_data("jonathan haggerty")
     enriched_data = await enrich_fighter(raw_data)
 
     paths = await render_carousel(enriched_data)

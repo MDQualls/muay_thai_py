@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, UTC
 from typing import Optional
 
 from sqlmodel import Field, SQLModel
@@ -20,8 +20,8 @@ class Fighter(SQLModel, table=True):
     # JSON-encoded list of fight history dicts from the scraper
     # e.g. '[{"opponent": "...", "result": "W", "method": "KO"}]'
     fight_history: Optional[str] = Field(default=None)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class FighterProfile(SQLModel, table=True):
@@ -45,7 +45,7 @@ class FighterProfile(SQLModel, table=True):
     attr_technique: int
     bio: str
     fun_fact: Optional[str] = Field(default=None)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class Card(SQLModel, table=True):
@@ -60,7 +60,7 @@ class Card(SQLModel, table=True):
     r2_url: Optional[str] = Field(default=None)
     # Claude-generated Instagram caption
     caption: Optional[str] = Field(default=None)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class InstagramPost(SQLModel, table=True):
@@ -70,6 +70,6 @@ class InstagramPost(SQLModel, table=True):
     card_id: int = Field(foreign_key="card.id")
     # The post ID returned by the Meta Graph API
     instagram_id: str
-    posted_at: datetime = Field(default_factory=datetime.utcnow)
+    posted_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     # The exact caption text that was submitted to Instagram
     caption_used: str

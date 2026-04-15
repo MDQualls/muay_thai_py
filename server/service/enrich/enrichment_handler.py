@@ -12,7 +12,7 @@ class EnrichmentHandler:
         self.logger = logging.getLogger(__name__)
         self.prompter = Prompter()
 
-    async def enrich(self, extract: dict) -> anthropic.types.Message:
+    async def enrich(self, extract: str) -> anthropic.types.Message:
         
         prompt = self.prompter.build_prompt(extract)
 
@@ -23,7 +23,7 @@ class EnrichmentHandler:
 
         message = await client.messages.create(
             model="claude-haiku-4-5-20251001",
-            max_tokens=1024,
+            max_tokens=2048,
             messages=[
                 {"role": "user", "content": prompt}
             ]

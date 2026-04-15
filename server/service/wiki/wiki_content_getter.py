@@ -41,7 +41,7 @@ class WikiContentGetter:
 
         if not pageid:
             msg = "Failed to extract pageid from wiki_data"
-            logging.warning(msg)
+            self.logger.warning(msg)
             raise ValueError(msg)
 
         params = {**self.PARAMS, "pageids": pageid}
@@ -53,7 +53,8 @@ class WikiContentGetter:
             self._handle_fetch_exception(f"Network error reaching Wikipedia: {e}")
 
         if response.status_code != 200:
-            self._handle_fetch_exception(f"Wikipedia returned {response.status_code} for {self.wiki_data.get("title", "unknown")}")
+            title = self.wiki_data.get("title", "unknown")
+            self._handle_fetch_exception(f"Wikipedia returned {response.status_code} for {title}")
 
         results = response.json()
 

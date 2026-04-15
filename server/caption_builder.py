@@ -13,7 +13,7 @@ def build_caption(enriched_data: dict[str, Any]) -> str:
         str caption with bio and hashtags
     """
 
-    logging.info("Building caption for Instagram post")
+    logger.info("Building caption for Instagram post")
 
     bio = enriched_data.get("bio", "")
     

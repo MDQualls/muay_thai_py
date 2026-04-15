@@ -424,12 +424,12 @@ def post_to_instagram(image_url: str, caption: str) -> str:
     
     TODO:
     Step 1 - Create media container:
-        POST https://graph.facebook.com/v19.0/{IG_ACCOUNT_ID}/media
+        POST https://graph.facebook.com/v25.0/{IG_ACCOUNT_ID}/media
         params: image_url, caption, access_token
         Returns a container ID
 
     Step 2 - Publish the container:
-        POST https://graph.facebook.com/v19.0/{IG_ACCOUNT_ID}/media_publish
+        POST https://graph.facebook.com/v25.0/{IG_ACCOUNT_ID}/media_publish
         params: creation_id (container ID), access_token
         Returns the post ID
     

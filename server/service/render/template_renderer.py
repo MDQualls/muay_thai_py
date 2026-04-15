@@ -7,6 +7,7 @@ class TemplateRenderer:
 
     def __init__(self):
         self.logger = logging.getLogger(__name__)
+        self.env = Environment(loader=FileSystemLoader("templates"))
 
     def render_template(
             self,
@@ -15,8 +16,8 @@ class TemplateRenderer:
             slide_num: int) -> str:
         
         try: 
-            env = Environment(loader=FileSystemLoader("templates"))
-            template = env.get_template(template_name)
+            
+            template = self.env.get_template(template_name)
 
             return template.render(fighter=enriched_data, slide_num=slide_num, total_slides=3)
         except Exception as e:
