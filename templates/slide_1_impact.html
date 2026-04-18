@@ -44,7 +44,7 @@
       background: linear-gradient(90deg, #e63946, #ff6b35, #e63946);
     }
 
-    /* Top section: name + nickname */
+    /* Top section: name, nickname, then record stacked below */
     .top-section {
       position: relative;
       z-index: 1;
@@ -69,6 +69,42 @@
       margin-top: 8px;
     }
 
+    .record-block {
+      margin-top: 22px;
+      text-align: right;
+    }
+
+    .record-wins-losses {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 104px;
+      line-height: 0.95;
+      letter-spacing: 4px;
+      background: linear-gradient(90deg, #e63946, #ff6b35);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .record-wl-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 5px;
+      color: #666666;
+      text-transform: uppercase;
+      margin-top: 8px;
+    }
+
+    .record-draws {
+      font-family: 'Oswald', sans-serif;
+      font-size: 20px;
+      font-weight: 400;
+      color: #555555;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
     /* Middle section: career highlight + divider + fighting style */
     .middle-section {
       position: relative;
@@ -77,7 +113,7 @@
 
     .career-highlight-label {
       font-family: 'Oswald', sans-serif;
-      font-size: 22px;
+      font-size: 30px;
       font-weight: 600;
       letter-spacing: 5px;
       color: #e63946;
@@ -173,6 +209,15 @@
       <div class="fighter-name">{{ fighter.name }}</div>
       {% if fighter.nickname %}
       <div class="fighter-nickname">"{{ fighter.nickname }}"</div>
+      {% endif %}
+      {% if fighter.record_wins is not none or fighter.record_losses is not none %}
+      <div class="record-block">
+        <div class="record-wins-losses">{{ fighter.record_wins if fighter.record_wins is not none else 0 }}-{{ fighter.record_losses if fighter.record_losses is not none else 0 }}</div>
+        <div class="record-wl-label">Wins · Losses</div>
+        {% if fighter.record_draws and fighter.record_draws > 0 %}
+        <div class="record-draws">{{ fighter.record_draws }} Draw{{ 's' if fighter.record_draws != 1 }}</div>
+        {% endif %}
+      </div>
       {% endif %}
     </div>
 

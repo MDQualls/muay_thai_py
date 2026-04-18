@@ -1,0 +1,8 @@
+{
+  "enabled": true,
+  "days": [
+    "sat"
+  ],
+  "time": "10:00",
+  "timezone": "America/Chicago"
+}

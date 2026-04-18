@@ -12,6 +12,8 @@ class Prompter:
             - Be sure to notice importantant career moments that would enhance the bio
             - Find something unique or interesting about this fighter that would make a good fun fact.
             - "fun_fact" should be one sentence maximum, no longer than 30 words
+            - "bio" must be exactly 3 sentences. Each sentence must be 30 words or fewer.
+                - It is very important that the bio must be 3 sentences.
             - "name" should be the fighter's professional fight name, not their legal birth name
             - "nickname" should be their ring nickname or moniker (e.g. "The Iron Man"), not their legal name
             - "nickname" should only be included if it is explicitly mentioned in the provided content. 
@@ -50,7 +52,9 @@ class Prompter:
                     "cardio": 9,
                     "technique": 8
                 }},
-                "bio": "Somchai Sor Lookjaomaesai is one of the most feared clinch fighters in the sport, having dominated the 63kg division across Thailand's major stadiums for nearly a decade. Known for his relentless forward pressure and devastating horizontal elbows, he has finished over a third of his opponents and holds notable wins over three former Lumpinee champions. His iron chin and elite cardio make him notoriously difficult to stop late in fights.",
+                "bio": "Somchai Sor Lookjaomaesai is one of the most feared clinch fighters in the sport. 
+                He has been dominating the 63kg division across Thailand's major stadiums for a decade. 
+                His relentless pressure and devastating horizontal elbows have finished over a third of his opponents.",
                 "fun_fact": "Somchai began training at age six and won his first professional fight at thirteen, earning enough to help his family buy their first motorcycle.",
                 "career_highlight": "Longest winning streak in ONE Championship (14)",
                 "hashtags": ["Rodtang", "MuayThai", "ONEChampionship", "JitmuangnongGym", "ThaiBoxing"]

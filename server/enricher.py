@@ -19,7 +19,7 @@ async def enrich_fighter(raw_data: dict[str, Any]) -> dict[str, Any]:
             signature_weapons: list[str] (e.g. ["Left body kick", "Elbow", "Clinch"])
             attributes: dict with int scores 1-10 for:
                 aggression, power, footwork, clinch, cardio, technique
-            bio: str (2-3 sentence punchy narrative)
+            bio: str (2 sentences max, 30 words per sentence)
             fun_fact: str
     """
 
@@ -38,7 +38,23 @@ async def enrich_fighter(raw_data: dict[str, Any]) -> dict[str, Any]:
     try:
         text = message.content[0].text.strip()
         text = text.removeprefix("```json").removeprefix("```").removesuffix("```").strip()
-        return json.loads(text)
+        enriched = json.loads(text)
     except json.JSONDecodeError as e:
         logger.error("Failed to parse Claude response as JSON: %s", e)
         raise EnrichmentError(f"Claude returned invalid JSON: {e}") from e
+
+    # Apply wiki infobox fallbacks for fields Claude may not find in plain text
+    if not enriched.get("nickname"):
+        enriched["nickname"] = raw_data.get("wiki_nickname")
+    if enriched.get("record_wins") is None:
+        enriched["record_wins"] = raw_data.get("wiki_wins")
+    if enriched.get("record_losses") is None:
+        enriched["record_losses"] = raw_data.get("wiki_losses")
+
+    # Draws: Claude doesn't currently return this — always source from the wiki infobox
+    enriched["record_draws"] = raw_data.get("wiki_draws")
+
+    # Attach the parsed fight record (list may be empty if parsing failed)
+    enriched["recent_results"] = raw_data.get("recent_results", [])
+
+    return enriched

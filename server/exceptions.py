@@ -20,3 +20,7 @@ class PublishError(Exception):
 
 class DatabaseError(Exception):
     """Raised when a database read or write operation fails."""
+
+
+class QueueError(Exception):
+    """Raised when a queue operation fails."""

@@ -15,6 +15,7 @@ class Fighter(SQLModel, table=True):
     record_wins: Optional[int] = Field(default=None)
     record_losses: Optional[int] = Field(default=None)
     record_kos: Optional[int] = Field(default=None)
+    record_draws: Optional[int] = Field(default=None)
     wikipedia_url: Optional[str] = Field(default=None)
     # JSON-encoded list of fight history dicts from the scraper
     # e.g. '[{"opponent": "...", "result": "W", "method": "KO"}]'
@@ -46,6 +47,8 @@ class FighterProfile(SQLModel, table=True):
     fun_fact: Optional[str] = Field(default=None)
     career_highlight: Optional[str] = Field(default=None)
     hashtags: Optional[str] = Field(default=None)
+    # JSON-encoded list of recent fight result dicts
+    recent_results: Optional[str] = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
@@ -74,3 +77,15 @@ class InstagramPost(SQLModel, table=True):
     posted_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     # The exact caption text that was submitted to Instagram
     caption_used: str
+
+
+class FighterQueue(SQLModel, table=True):
+    """One row per fighter in the posting queue."""
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    fighter_name: str = Field(index=True)
+    priority: int = Field(default=0)       # higher = processed sooner
+    status: str = Field(default="pending") # pending | processing | done | failed
+    error_message: Optional[str] = Field(default=None)
+    added_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    processed_at: Optional[datetime] = Field(default=None)

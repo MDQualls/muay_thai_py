@@ -21,60 +21,190 @@
     <!-- Main content -->
     <main class="app-main">
 
-      <!-- Fighter input -->
-      <section class="input-section">
-        <div class="input-group">
-          <input
-            type="text"
-            id="fighter-input"
-            class="fighter-input"
-            placeholder="Enter fighter name e.g. Rodtang Jitmuangnon"
-            autocomplete="off"
-          />
-          <button id="generate-btn" class="btn btn-primary">Generate Card</button>
-        </div>
-      </section>
+      <!-- Tab navigation -->
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="generate">Generate</button>
+        <button class="tab-btn" data-tab="queue">Queue</button>
+        <button class="tab-btn" data-tab="scheduler">Scheduler</button>
+      </nav>
 
-      <!-- Pipeline progress (hidden until generation starts) -->
-      <section id="progress-section" class="progress-section hidden">
-        <div class="progress-steps">
-          <div class="step" id="step-scrape">
-            <span class="step-icon">⬜</span>
-            <span class="step-label">Scraping fighter data</span>
+      <!-- ── Generate Tab ── -->
+      <div class="tab-panel active" id="tab-generate">
+
+        <section class="input-section">
+          <div class="input-group">
+            <input
+              type="text"
+              id="fighter-input"
+              class="fighter-input"
+              placeholder="Enter fighter name e.g. Rodtang Jitmuangnon"
+              autocomplete="off"
+            />
+            <button id="generate-btn" class="btn btn-primary">Generate Card</button>
           </div>
-          <div class="step" id="step-enrich">
-            <span class="step-icon">⬜</span>
-            <span class="step-label">Enriching with Claude AI</span>
+        </section>
+
+        <section id="progress-section" class="progress-section hidden">
+          <div class="progress-steps">
+            <div class="step" id="step-scrape">
+              <span class="step-icon">⬜</span>
+              <span class="step-label">Scraping fighter data</span>
+            </div>
+            <div class="step" id="step-enrich">
+              <span class="step-icon">⬜</span>
+              <span class="step-label">Enriching with Claude AI</span>
+            </div>
+            <div class="step" id="step-render">
+              <span class="step-icon">⬜</span>
+              <span class="step-label">Rendering card</span>
+            </div>
           </div>
-          <div class="step" id="step-render">
-            <span class="step-icon">⬜</span>
-            <span class="step-label">Rendering card</span>
+        </section>
+
+        <section id="preview-section" class="preview-section hidden">
+          <div class="preview-container">
+            <div class="carousel">
+              <div class="carousel-track" id="carousel-track">
+                <img class="carousel-slide" id="slide-1" src="" alt="Slide 1" />
+                <img class="carousel-slide" id="slide-2" src="" alt="Slide 2" />
+                <img class="carousel-slide" id="slide-3" src="" alt="Slide 3" />
+              </div>
+            </div>
+            <div class="carousel-dots">
+              <button class="dot active" data-index="0" aria-label="Slide 1"></button>
+              <button class="dot" data-index="1" aria-label="Slide 2"></button>
+              <button class="dot" data-index="2" aria-label="Slide 3"></button>
+            </div>
           </div>
-        </div>
-      </section>
 
-      <!-- Card preview (hidden until generation completes) -->
-      <section id="preview-section" class="preview-section hidden">
-        <div class="preview-container">
-          <img id="card-preview" class="card-preview" src="" alt="Fighter card preview" />
-        </div>
+          <div class="caption-container">
+            <label for="caption-input" class="caption-label">Instagram Caption</label>
+            <textarea id="caption-input" class="caption-input" rows="4" placeholder="Caption will appear here..."></textarea>
+          </div>
 
-        <!-- Caption editor -->
-        <div class="caption-container">
-          <label for="caption-input" class="caption-label">Instagram Caption</label>
-          <textarea id="caption-input" class="caption-input" rows="4" placeholder="Caption will appear here..."></textarea>
-        </div>
+          <div class="actions">
+            <button id="post-btn" class="btn btn-accent">Post to Instagram</button>
+          </div>
+        </section>
 
-        <!-- Post button -->
-        <div class="actions">
-          <button id="post-btn" class="btn btn-accent">Post to Instagram</button>
-        </div>
-      </section>
+        <section id="status-section" class="status-section hidden">
+          <div id="status-message" class="status-message"></div>
+        </section>
 
-      <!-- Status messages -->
-      <section id="status-section" class="status-section hidden">
-        <div id="status-message" class="status-message"></div>
-      </section>
+      </div>
+
+      <!-- ── Queue Tab ── -->
+      <div class="tab-panel hidden" id="tab-queue">
+
+        <!-- Status bar -->
+        <section class="queue-status-bar" id="queue-status-bar">
+          <span class="queue-stat" id="stat-pending">— pending</span>
+          <span class="queue-stat" id="stat-done">— done</span>
+          <span class="queue-stat" id="stat-failed">— failed</span>
+          <span class="queue-scheduler" id="stat-scheduler">scheduler —</span>
+        </section>
+
+        <!-- Add single fighter -->
+        <section class="input-section">
+          <div class="input-group">
+            <input
+              type="text"
+              id="queue-input"
+              class="fighter-input"
+              placeholder="Fighter name to add to queue"
+              autocomplete="off"
+            />
+            <button id="queue-add-btn" class="btn btn-primary">Add to Queue</button>
+          </div>
+        </section>
+
+        <!-- Bulk import -->
+        <section class="bulk-section">
+          <label for="bulk-input" class="caption-label">Bulk Import (one name per line)</label>
+          <textarea
+            id="bulk-input"
+            class="caption-input"
+            rows="5"
+            placeholder="Rodtang Jitmuangnon&#10;Superlek Kiatmoo9&#10;Nong-O Hama"
+          ></textarea>
+          <div class="bulk-actions">
+            <button id="bulk-add-btn" class="btn btn-primary">Import List</button>
+            <button id="load-seed-btn" class="btn btn-secondary">Load Seed List</button>
+          </div>
+        </section>
+
+        <!-- Manual run -->
+        <section class="queue-actions">
+          <button id="run-now-btn" class="btn btn-accent">▶ Run Next Now</button>
+        </section>
+
+        <!-- Queue status message -->
+        <section id="queue-status-section" class="status-section hidden">
+          <div id="queue-status-message" class="status-message"></div>
+        </section>
+
+        <!-- Queue list header with filter toggle -->
+        <section class="queue-list-section">
+          <div class="queue-list-header">
+            <span class="queue-list-title">Queue</span>
+            <label class="toggle-label" id="filter-toggle-label" title="Hide processed fighters">
+              <input type="checkbox" id="filter-done-toggle" />
+              <span class="toggle-track">
+                <span class="toggle-thumb"></span>
+              </span>
+              <span class="toggle-text" id="filter-toggle-text">Show All</span>
+            </label>
+          </div>
+          <div id="queue-list" class="queue-list">
+            <p class="queue-empty">Queue is empty. Add fighters above.</p>
+          </div>
+        </section>
+
+      </div>
+
+      <!-- ── Scheduler Tab ── -->
+      <div class="tab-panel hidden" id="tab-scheduler">
+
+        <!-- Scheduler settings -->
+        <section class="scheduler-settings" id="scheduler-settings">
+          <div class="scheduler-header">
+            <span class="scheduler-title">Scheduler</span>
+            <label class="toggle-label">
+              <input type="checkbox" id="scheduler-enabled" />
+              <span class="toggle-track">
+                <span class="toggle-thumb"></span>
+              </span>
+              <span class="toggle-text" id="toggle-text">Enabled</span>
+            </label>
+          </div>
+
+          <div class="scheduler-body" id="scheduler-body">
+            <div class="day-picker">
+              <span class="day-picker-label">Run on</span>
+              <div class="day-pills">
+                <label class="day-pill"><input type="checkbox" value="sun" /><span>Sun</span></label>
+                <label class="day-pill"><input type="checkbox" value="mon" /><span>Mon</span></label>
+                <label class="day-pill"><input type="checkbox" value="tue" /><span>Tue</span></label>
+                <label class="day-pill"><input type="checkbox" value="wed" /><span>Wed</span></label>
+                <label class="day-pill"><input type="checkbox" value="thu" /><span>Thu</span></label>
+                <label class="day-pill"><input type="checkbox" value="fri" /><span>Fri</span></label>
+                <label class="day-pill"><input type="checkbox" value="sat" /><span>Sat</span></label>
+              </div>
+            </div>
+
+            <div class="time-picker-row">
+              <span class="day-picker-label">At</span>
+              <input type="time" id="scheduler-time" class="time-input" value="09:00" />
+              <span class="time-hint" id="next-run-hint"></span>
+            </div>
+
+            <div class="scheduler-save-row">
+              <button id="scheduler-save-btn" class="btn btn-primary">Save Schedule</button>
+            </div>
+          </div>
+        </section>
+
+      </div>
 
     </main>
   </div>

@@ -45,7 +45,7 @@
 
     /* Slide header — fighter name + thin red divider */
     .slide-header {
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
 
     .fighter-name {
@@ -66,67 +66,67 @@
     .main-content {
       display: grid;
       grid-template-columns: 55fr 45fr;
-      gap: 40px;
+      gap: 36px;
       flex: 1;
       min-height: 0;
     }
 
     .section-label {
       font-family: 'Oswald', sans-serif;
-      font-size: 22px;
+      font-size: 30px;
       font-weight: 600;
-      letter-spacing: 5px;
+      letter-spacing: 4px;
       color: #e63946;
       text-transform: uppercase;
-      margin-bottom: 20px;
+      margin-bottom: 22px;
     }
 
     /* Attribute rows */
     .attr-row {
       display: flex;
       align-items: center;
-      gap: 16px;
-      margin-bottom: 28px;
+      gap: 18px;
+      margin-bottom: 22px;
     }
 
     .attr-label {
       font-family: 'Oswald', sans-serif;
-      font-size: 20px;
+      font-size: 26px;
       font-weight: 600;
       letter-spacing: 2px;
       text-transform: uppercase;
       color: #cccccc;
-      width: 140px;
+      width: 158px;
       flex-shrink: 0;
     }
 
     .attr-bar-track {
       flex: 1;
-      height: 36px;
+      height: 22px;
       background: #1e1e35;
-      border-radius: 18px;
+      border-radius: 11px;
       overflow: hidden;
     }
 
     .attr-bar-fill {
       height: 100%;
-      border-radius: 18px;
+      border-radius: 11px;
       background: linear-gradient(90deg, #e63946, #ff6b35);
     }
 
     .attr-score {
       font-family: 'Oswald', sans-serif;
-      font-size: 28px;
+      font-size: 38px;
       font-weight: 700;
       color: #ffffff;
-      width: 40px;
+      width: 46px;
       text-align: right;
       flex-shrink: 0;
     }
 
     /* Signature weapons */
     .weapons {
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
 
     .weapon-tag {
@@ -135,19 +135,55 @@
       border: 1px solid rgba(230, 57, 70, 0.35);
       color: #ff8a93;
       font-family: 'Oswald', sans-serif;
-      font-size: 18px;
+      font-size: 24px;
       font-weight: 600;
       letter-spacing: 1px;
       text-transform: uppercase;
-      padding: 16px 24px;
+      padding: 18px 24px;
       border-radius: 4px;
-      margin: 0 8px 14px 0;
+      margin: 0 10px 16px 0;
     }
+
+    /* Recent fights table */
+    .recent-results {
+      margin-top: 40px;
+    }
+
+    .fight-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .fight-table th {
+      font-family: 'Oswald', sans-serif;
+      font-size: 22px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      color: #e63946;
+      text-transform: uppercase;
+      padding: 0 16px 14px 0;
+      text-align: left;
+      border-bottom: 1px solid #1e1e35;
+    }
+
+    .fight-table td {
+      font-family: 'Inter', sans-serif;
+      font-size: 24px;
+      color: #cccccc;
+      padding: 15px 16px 15px 0;
+      border-bottom: 1px solid #0f0f22;
+      vertical-align: middle;
+    }
+
+    .fight-result-win  { color: #7dda82; font-weight: 600; font-family: 'Oswald', sans-serif; font-size: 24px; letter-spacing: 1px; text-transform: uppercase; }
+    .fight-result-loss { color: #e63946; font-weight: 600; font-family: 'Oswald', sans-serif; font-size: 24px; letter-spacing: 1px; text-transform: uppercase; }
+    .fight-result-draw { color: #aaaaaa; font-weight: 600; font-family: 'Oswald', sans-serif; font-size: 24px; letter-spacing: 1px; text-transform: uppercase; }
+    .fight-result-nc   { color: #777777; font-weight: 600; font-family: 'Oswald', sans-serif; font-size: 24px; letter-spacing: 1px; text-transform: uppercase; }
 
     /* Record block */
     .record-value {
       font-family: 'Oswald', sans-serif;
-      font-size: 48px;
+      font-size: 80px;
       font-weight: 700;
       color: #ffffff;
       line-height: 1;
@@ -155,22 +191,22 @@
 
     .record-label {
       font-family: 'Oswald', sans-serif;
-      font-size: 16px;
+      font-size: 28px;
       font-weight: 400;
       color: #888888;
       letter-spacing: 3px;
       text-transform: uppercase;
-      margin-top: 4px;
+      margin-top: 8px;
     }
 
     .record-kos {
       font-family: 'Oswald', sans-serif;
-      font-size: 20px;
+      font-size: 32px;
       font-weight: 600;
       color: #ff6b35;
       letter-spacing: 2px;
       text-transform: uppercase;
-      margin-top: 8px;
+      margin-top: 12px;
     }
 
     /* Footer */
@@ -178,8 +214,8 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
-      margin-top: 24px;
-      padding-top: 20px;
+      margin-top: 16px;
+      padding-top: 16px;
       border-top: 1px solid #1e1e35;
     }
 
@@ -242,17 +278,38 @@
           {% endfor %}
         </div>
 
-        {% if fighter.record_wins is not none %}
-        <div class="section-label">Record</div>
-        <div class="record-value">{{ fighter.record_wins }}-{{ fighter.record_losses }}</div>
-        <div class="record-label">W — L</div>
-        {% if fighter.record_kos is not none %}
-        <div class="record-kos">{{ fighter.record_kos }} KO</div>
-        {% endif %}
-        {% endif %}
       </div>
 
     </div>
+
+    {% if fighter.recent_results %}
+    <div class="recent-results">
+      <div class="section-label">Recent Fights</div>
+      <table class="fight-table">
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Result</th>
+            <th>Opponent</th>
+            <th>Method</th>
+            <th>Rnd</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fight in fighter.recent_results %}
+          {% set result_lower = fight.result | lower %}
+          <tr>
+            <td>{{ fight.date }}</td>
+            <td class="fight-result-{% if 'win' in result_lower %}win{% elif 'loss' in result_lower %}loss{% elif 'draw' in result_lower %}draw{% else %}nc{% endif %}">{{ fight.result }}</td>
+            <td>{{ fight.opponent }}</td>
+            <td>{{ fight.method }}</td>
+            <td>{{ fight.round }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
 
     <div class="footer">
       <div class="app-brand">Muay Thai Cards</div>

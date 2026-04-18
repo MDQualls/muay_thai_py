@@ -1,7 +1,9 @@
 import logging
 from typing import Any
-from server.service.wiki.wiki_searcher import WikiSearcher
+
 from server.service.wiki.wiki_content_getter import WikiContentGetter
+from server.service.wiki.wiki_record_parser import WikiRecordParser
+from server.service.wiki.wiki_searcher import WikiSearcher
 
 logger = logging.getLogger(__name__)
 
@@ -23,9 +25,14 @@ async def get_fighter_data(fighter_name: str) -> dict[str, Any]:
     getter = WikiContentGetter(search_result)
     content = await getter.get_wiki_content()
 
+    # parse the infobox and fight record table from the rendered HTML
+    record_parser = WikiRecordParser(search_result)
+    record_data = await record_parser.parse()
+
     return {
         "name": fighter_name,
         "wikipedia_title": content["title"],
         "wikipedia_url": f"https://en.wikipedia.org/wiki/{content['title'].replace(' ', '_')}",
         "wikipedia_extract": content["content"],
+        **record_data,
     }
