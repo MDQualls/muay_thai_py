@@ -1,17 +1,19 @@
 import logging
-from playwright.async_api import async_playwright
+from pathlib import Path
+from playwright.async_api import async_playwright, Error as PlaywrightError
 from server.exceptions import RenderError
+
 
 class ScreenshotHandler:
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.logger = logging.getLogger(__name__)
 
     async def create_jpeg(
-            self, 
+            self,
             fighter_name: str,
-            html: str, 
-            output_path: str):
+            html: str,
+            output_path: Path) -> None:
 
         try:
             async with async_playwright() as p:
@@ -21,6 +23,6 @@ class ScreenshotHandler:
                 await page.set_content(html, wait_until="networkidle")
                 await page.screenshot(path=str(output_path), full_page=False, type="jpeg", quality=95)
                 await browser.close()
-        except Exception as e:
+        except PlaywrightError as e:
             self.logger.error("Failed to generate screenshot jpeg for '%s': %s", fighter_name, e)
             raise RenderError(f"Screenshot jpeg generation failed: {e}") from e

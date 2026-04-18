@@ -15,5 +15,5 @@ class PathHandler:
             Path e.g. "output/rodtang_jitmuangnon_20240101_120000_slide1.jpg"
         """
         slug = fighter_name.lower().replace(" ", "_")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         return Path("output") / f"{slug}_{timestamp}_slide{slide_num}.jpg"

@@ -4,12 +4,14 @@ from datetime import datetime, UTC
 from pathlib import Path
 from typing import Any
 
+from apscheduler.jobstores.base import JobLookupError
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from sqlmodel import Session, select, desc
 
-from server import caption_builder, enricher, fetcher, publisher, renderer, uploader
-from server.database import get_engine
-from server.models import Card, Fighter, FighterQueue, FighterProfile, InstagramPost
+from server import pipeline
+from server.database import create_session
+from server.exceptions import EnrichmentError, FetchError, PublishError, RenderError, UploadError
+from server.models import Card, Fighter, FighterQueue, InstagramPost
 
 logger = logging.getLogger(__name__)
 
@@ -138,8 +140,8 @@ def apply_scheduler_config(config: dict) -> None:
         try:
             scheduler.remove_job("queue_job")
             logger.info("Scheduler job removed — scheduler disabled or no days selected")
-        except Exception:
-            pass  # Job may not exist if it was never scheduled
+        except JobLookupError:
+            logger.debug("Scheduler job 'queue_job' did not exist — nothing to remove")
 
 
 def stop_scheduler() -> None:
@@ -156,9 +158,7 @@ async def process_next_queued_fighter() -> dict[str, Any] | None:
     Skips fighters that already have an InstagramPost linked to their Fighter row.
     Returns a summary dict on success, None if the queue is empty.
     """
-    engine = get_engine()
-
-    with Session(engine) as session:
+    with create_session() as session:
         next_item = session.exec(
             select(FighterQueue)
             .where(FighterQueue.status == "pending")
@@ -189,15 +189,18 @@ async def process_next_queued_fighter() -> dict[str, Any] | None:
     # Run pipeline outside the session to avoid long-held locks
     try:
         logger.info("Queue: starting pipeline for %s", fighter_name)
-        result = await _run_pipeline(fighter_name)
+        result = await pipeline.run_full_pipeline(fighter_name)
         logger.info(
             "Queue: pipeline complete for %s — post ID %s",
             fighter_name,
             result["instagram_post_id"],
         )
 
-        with Session(engine) as session:
+        with create_session() as session:
             item = session.get(FighterQueue, queue_id)
+            if item is None:
+                logger.warning("Queue item %d disappeared after pipeline — cannot mark done", queue_id)
+                return result
             item.status = "done"
             item.processed_at = datetime.now(UTC)
             session.add(item)
@@ -205,10 +208,13 @@ async def process_next_queued_fighter() -> dict[str, Any] | None:
 
         return result
 
-    except Exception as e:
+    except (FetchError, EnrichmentError, RenderError, UploadError, PublishError) as e:
         logger.error("Queue: pipeline failed for %s: %s", fighter_name, e)
-        with Session(engine) as session:
+        with create_session() as session:
             item = session.get(FighterQueue, queue_id)
+            if item is None:
+                logger.warning("Queue item %d disappeared after pipeline failure — cannot mark failed", queue_id)
+                return None
             item.status = "failed"
             item.error_message = str(e)
             item.processed_at = datetime.now(UTC)
@@ -234,109 +240,3 @@ def _has_been_posted(session: Session, fighter_name: str) -> bool:
     ).first()
 
     return post is not None
-
-
-async def _run_pipeline(fighter_name: str) -> dict[str, Any]:
-    """Run the full generate + post pipeline for a fighter name.
-
-    Mirrors the logic in api.py /generate and /post routes but runs
-    headlessly without a request context. Saves all DB records.
-
-    Raises:
-        Any pipeline exception (FetchError, EnrichmentError, etc.) — caller handles.
-    """
-    import json
-
-    engine = get_engine()
-
-    raw_data = await fetcher.get_fighter_data(fighter_name)
-    enriched_data = await enricher.enrich_fighter(raw_data)
-    card_paths = await renderer.render_carousel(enriched_data)
-    caption = caption_builder.build_caption(enriched_data)
-
-    with Session(engine) as session:
-        # Upsert Fighter
-        fighter = session.exec(
-            select(Fighter).where(Fighter.name == enriched_data.get("name"))
-        ).first()
-
-        if fighter:
-            fighter.nickname = enriched_data.get("nickname")
-            fighter.nationality = enriched_data.get("nationality")
-            fighter.gym = enriched_data.get("gym")
-            fighter.record_wins = enriched_data.get("record_wins")
-            fighter.record_losses = enriched_data.get("record_losses")
-            fighter.record_kos = enriched_data.get("record_kos")
-            fighter.record_draws = enriched_data.get("record_draws")
-            fighter.wikipedia_url = raw_data.get("wikipedia_url")
-            fighter.updated_at = datetime.now(UTC)
-            session.add(fighter)
-        else:
-            fighter = Fighter(
-                name=enriched_data.get("name"),
-                nickname=enriched_data.get("nickname"),
-                nationality=enriched_data.get("nationality"),
-                gym=enriched_data.get("gym"),
-                record_wins=enriched_data.get("record_wins"),
-                record_losses=enriched_data.get("record_losses"),
-                record_kos=enriched_data.get("record_kos"),
-                record_draws=enriched_data.get("record_draws"),
-                wikipedia_url=raw_data.get("wikipedia_url"),
-            )
-            session.add(fighter)
-
-        session.commit()
-        session.refresh(fighter)
-
-        profile = FighterProfile(
-            fighter_id=fighter.id,
-            fighting_style=enriched_data.get("fighting_style", ""),
-            signature_weapons=json.dumps(enriched_data.get("signature_weapons", [])),
-            attr_aggression=enriched_data["attributes"]["aggression"],
-            attr_power=enriched_data["attributes"]["power"],
-            attr_footwork=enriched_data["attributes"]["footwork"],
-            attr_clinch=enriched_data["attributes"]["clinch"],
-            attr_cardio=enriched_data["attributes"]["cardio"],
-            attr_technique=enriched_data["attributes"]["technique"],
-            bio=enriched_data.get("bio", ""),
-            fun_fact=enriched_data.get("fun_fact"),
-            career_highlight=enriched_data.get("career_highlight"),
-            hashtags=json.dumps(enriched_data.get("hashtags", [])),
-            recent_results=json.dumps(enriched_data.get("recent_results", [])),
-        )
-        session.add(profile)
-        session.commit()
-        session.refresh(profile)
-
-        for card_path in card_paths:
-            card = Card(
-                fighter_id=fighter.id,
-                profile_id=profile.id,
-                local_path=str(card_path),
-                caption=caption,
-            )
-            session.add(card)
-        session.commit()
-
-        # Upload + publish
-        image_urls = await uploader.upload_carousel(card_paths)
-        instagram_post_id = await publisher.post_carousel(image_urls, caption)
-
-        # Save post records
-        cards = session.exec(
-            select(Card).where(Card.profile_id == profile.id)
-        ).all()
-
-        for i, card in enumerate(cards):
-            card.r2_url = image_urls[i]
-            session.add(card)
-            post_record = InstagramPost(
-                card_id=card.id,
-                instagram_id=instagram_post_id,
-                caption_used=caption,
-            )
-            session.add(post_record)
-
-        session.commit()
-
-    return {"fighter_name": fighter_name, "instagram_post_id": instagram_post_id}

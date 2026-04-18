@@ -30,7 +30,7 @@ async def enrich_fighter(raw_data: dict[str, Any]) -> dict[str, Any]:
     if not extract:
         msg = "Failed to extract the Wikipedia content for the enricher"
         logger.warning(msg)
-        raise ValueError(msg)
+        raise EnrichmentError(msg)
 
     handler = EnrichmentHandler()
     message = await handler.enrich(extract)

@@ -4,6 +4,7 @@ import server.constants
 import server.exceptions
 from typing import Any
 
+
 class WikiContentGetter:
 
     PARAMS = {
@@ -14,14 +15,12 @@ class WikiContentGetter:
         "explaintext": 1    # ← strips wiki markup, returns clean plain text
     }
 
-
-
-    def __init__(self, wiki_data: dict):
+    def __init__(self, wiki_data: dict[str, Any]) -> None:
         """
-         Expected shape of data passed to WikiContentGetter is 
+         Expected shape of data passed to WikiContentGetter is
 
          {
-            'title': 'Rodtang Jitmuangnon', 
+            'title': 'Rodtang Jitmuangnon',
             'page_id': 60654920
          }
         """
@@ -30,8 +29,7 @@ class WikiContentGetter:
         if not wiki_data:
             msg = "Empty wiki_data passed to WikiContentGetter"
             self.logger.warning(msg)
-            raise ValueError(msg)
-        
+            raise server.exceptions.FetchError(msg)
 
         self.wiki_data = wiki_data
 
@@ -42,7 +40,7 @@ class WikiContentGetter:
         if not pageid:
             msg = "Failed to extract pageid from wiki_data"
             self.logger.warning(msg)
-            raise ValueError(msg)
+            raise server.exceptions.FetchError(msg)
 
         params = {**self.PARAMS, "pageids": pageid}
 
@@ -59,7 +57,7 @@ class WikiContentGetter:
         results = response.json()
 
         if not results:
-            self._handle_fetch_exception(f"No Wikipedia article found for page_id '{pageid}'")            
+            self._handle_fetch_exception(f"No Wikipedia article found for page_id '{pageid}'")
 
         pages = results.get("query", {}).get("pages", {})
         page = pages.get(str(pageid), {})
@@ -67,12 +65,12 @@ class WikiContentGetter:
 
         if not extract:
             self._handle_fetch_exception(f"No content found for page_id '{pageid}'")
-        
+
         return {
             **self.wiki_data,
             "content": extract
         }
 
-    def _handle_fetch_exception(self, msg: str):
+    def _handle_fetch_exception(self, msg: str) -> None:
         self.logger.warning(msg)
         raise server.exceptions.FetchError(msg)

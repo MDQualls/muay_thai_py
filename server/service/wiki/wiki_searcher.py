@@ -13,7 +13,7 @@ class WikiSearcher:
         "srsearch": ""
     }
 
-    def __init__(self, fighter_name: str):
+    def __init__(self, fighter_name: str) -> None:
 
         self.logger = logging.getLogger(__name__)
 
@@ -44,7 +44,9 @@ class WikiSearcher:
 
         top_result = results[0]
 
-        if self.fighter_name.lower().split()[0] not in top_result["title"].lower():
+        name_words = [w for w in self.fighter_name.lower().split() if len(w) > 2]
+        title_lower = top_result["title"].lower()
+        if not any(word in title_lower for word in name_words):
             self._handle_fetch_exception(f"No relevant Wikipedia article found for '{self.fighter_name}'")
         
         return {
@@ -52,7 +54,7 @@ class WikiSearcher:
             "page_id": top_result["pageid"]
         }
     
-    def _handle_fetch_exception(self, msg: str):
+    def _handle_fetch_exception(self, msg: str) -> None:
         self.logger.warning(msg)
         raise server.exceptions.FetchError(msg)
 

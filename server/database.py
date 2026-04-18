@@ -1,5 +1,6 @@
 import logging
 from collections.abc import Generator
+from contextlib import contextmanager
 from sqlmodel import Session, SQLModel, create_engine
 from server.config import settings
 from server import models
@@ -37,6 +38,17 @@ def get_session() -> Generator[Session, None, None]:
 
     Usage in route handlers:
         session: Session = Depends(get_session)
+    """
+    engine = get_engine()
+    with Session(engine) as session:
+        yield session
+
+
+@contextmanager
+def create_session() -> Generator[Session, None, None]:
+    """Context manager that yields a database session.
+
+    Use in non-FastAPI contexts (e.g. the scheduler) where Depends() is unavailable.
     """
     engine = get_engine()
     with Session(engine) as session:

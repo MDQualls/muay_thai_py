@@ -1,7 +1,7 @@
 {
   "enabled": true,
   "days": [
-    "sat"
+    "sun"
   ],
   "time": "10:00",
   "timezone": "America/Chicago"

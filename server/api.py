@@ -1,9 +1,9 @@
+import json
 import logging
 from contextlib import asynccontextmanager
-from typing import Any
 from pathlib import Path
 from datetime import datetime, UTC
-import json
+from typing import Any
 
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.responses import FileResponse
@@ -12,7 +12,7 @@ from pydantic import BaseModel
 from sqlmodel import Session, select, desc, func
 from server.models import Fighter, FighterProfile, Card, InstagramPost, FighterQueue
 
-from server import enricher, fetcher, publisher, renderer, uploader, caption_builder
+from server import enricher, fetcher, publisher, renderer, uploader, caption_builder, pipeline
 from server.database import create_db_and_tables, get_session
 from server.exceptions import EnrichmentError, FetchError, PublishError, RenderError, UploadError
 from server.scheduler import (
@@ -27,6 +27,7 @@ from server.scheduler import (
 logger = logging.getLogger(__name__)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(name)s %(levelname)s %(message)s")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -55,7 +56,7 @@ class GenerateRequest(BaseModel):
 
 class GenerateResponse(BaseModel):
     status: str
-    card_paths: list[str]   # was: card_path: str
+    card_paths: list[str]
     caption: str
 
 
@@ -152,8 +153,7 @@ async def generate(
     request: GenerateRequest,
     session: Session = Depends(get_session),
 ) -> GenerateResponse:
-    """Run the full fighter card pipeline: scrape → enrich → render.
-    """
+    """Run the full fighter card pipeline: scrape → enrich → render."""
     try:
         logger.info("Generating card for fighter: %s", request.fighter_name)
 
@@ -162,67 +162,7 @@ async def generate(
         card_paths = await renderer.render_carousel(enriched_data)
         caption = caption_builder.build_caption(enriched_data)
 
-        # Upsert Fighter
-        statement = select(Fighter).where(Fighter.name == enriched_data.get("name"))
-        fighter = session.exec(statement).first()
-
-        if fighter:
-            fighter.nickname = enriched_data.get("nickname")
-            fighter.nationality = enriched_data.get("nationality")
-            fighter.gym = enriched_data.get("gym")
-            fighter.record_wins = enriched_data.get("record_wins")
-            fighter.record_losses = enriched_data.get("record_losses")
-            fighter.record_kos = enriched_data.get("record_kos")
-            fighter.record_draws = enriched_data.get("record_draws")
-            fighter.wikipedia_url = raw_data.get("wikipedia_url")
-            fighter.updated_at = datetime.now(UTC)
-            session.add(fighter)
-        else:
-            fighter = Fighter(
-                name=enriched_data.get("name"),
-                nickname=enriched_data.get("nickname"),
-                nationality=enriched_data.get("nationality"),
-                gym=enriched_data.get("gym"),
-                record_wins=enriched_data.get("record_wins"),
-                record_losses=enriched_data.get("record_losses"),
-                record_kos=enriched_data.get("record_kos"),
-                record_draws=enriched_data.get("record_draws"),
-                wikipedia_url=raw_data.get("wikipedia_url"),
-            )
-            session.add(fighter)
-
-        session.commit()
-        session.refresh(fighter)
-
-        profile = FighterProfile(
-            fighter_id=fighter.id,
-            fighting_style=enriched_data.get("fighting_style", ""),
-            signature_weapons=json.dumps(enriched_data.get("signature_weapons", [])),
-            attr_aggression=enriched_data["attributes"]["aggression"],
-            attr_power=enriched_data["attributes"]["power"],
-            attr_footwork=enriched_data["attributes"]["footwork"],
-            attr_clinch=enriched_data["attributes"]["clinch"],
-            attr_cardio=enriched_data["attributes"]["cardio"],
-            attr_technique=enriched_data["attributes"]["technique"],
-            bio=enriched_data.get("bio", ""),
-            fun_fact=enriched_data.get("fun_fact"),
-            career_highlight=enriched_data.get("career_highlight"),
-            hashtags=json.dumps(enriched_data.get("hashtags", [])),
-            recent_results=json.dumps(enriched_data.get("recent_results", [])),
-        )
-        session.add(profile)
-        session.commit()
-        session.refresh(profile)
-
-        for card_path in card_paths:
-            card = Card(
-                fighter_id=fighter.id,
-                profile_id=profile.id,
-                local_path=str(card_path),
-                caption=caption,
-            )
-            session.add(card)
-        session.commit()
+        pipeline.save_generation(session, raw_data, enriched_data, card_paths, caption)
 
         return GenerateResponse(
             status="ok",
@@ -269,17 +209,14 @@ async def preview(slide: int = 1, session: Session = Depends(get_session)) -> Fi
 
     return FileResponse(str(card_path), media_type="image/jpeg")
 
+
 @app.post("/post", response_model=PostResponse)
 async def post(
     request: PostRequest,
     session: Session = Depends(get_session),
 ) -> PostResponse:
-    """Upload the latest card to R2 and post it to Instagram.
-    """
+    """Upload the latest card to R2 and post it to Instagram."""
     try:
-        # Get the most recent set of cards — the 3 slides from the last generate run
-        # Cards are created in a batch so they share the same profile_id
-        # Get the latest profile_id and fetch all cards for it
         latest_card = session.exec(
             select(Card).order_by(desc(Card.created_at))
         ).first()
@@ -287,12 +224,22 @@ async def post(
         if not latest_card:
             raise HTTPException(status_code=400, detail="No cards generated yet.")
 
+        # Guard against double-posting the same set of cards
+        existing_post = session.exec(
+            select(InstagramPost).where(InstagramPost.card_id == latest_card.id).limit(1)
+        ).first()
+        if existing_post:
+            raise HTTPException(
+                status_code=409,
+                detail="These cards have already been posted to Instagram.",
+            )
+
         cards = session.exec(
             select(Card).where(Card.profile_id == latest_card.profile_id)
         ).all()
 
         card_paths = [Path(card.local_path) for card in cards]
-        caption = caption = request.caption or latest_card.caption or ""
+        caption = request.caption or latest_card.caption or ""
         image_urls = await uploader.upload_carousel(card_paths)
         instagram_post_id = await publisher.post_carousel(image_urls, caption)
 
@@ -319,10 +266,13 @@ async def post(
 
 
 @app.get("/fighters")
-async def list_fighters(session: Session = Depends(get_session)) -> list[dict[str, Any]]:
-    """Return all fighters from the database.
-    """
-    fighters = session.exec(select(Fighter)).all()
+async def list_fighters(
+    session: Session = Depends(get_session),
+    limit: int = 100,
+    offset: int = 0,
+) -> list[dict[str, Any]]:
+    """Return fighters from the database, paginated."""
+    fighters = session.exec(select(Fighter).offset(offset).limit(limit)).all()
     return [f.model_dump() for f in fighters]
 
 
@@ -330,14 +280,14 @@ async def list_fighters(session: Session = Depends(get_session)) -> list[dict[st
 async def get_fighter_cards(
     fighter_id: int,
     session: Session = Depends(get_session),
+    limit: int = 50,
+    offset: int = 0,
 ) -> list[dict[str, Any]]:
-    """Return all cards for a given fighter, including R2 URL and post status.
-    """
-    cards = session.exec(select(Card).where(Card.fighter_id == fighter_id)).all()
+    """Return cards for a given fighter, including R2 URL and post status."""
+    cards = session.exec(
+        select(Card).where(Card.fighter_id == fighter_id).offset(offset).limit(limit)
+    ).all()
     return [c.model_dump() for c in cards]
-
-
-import json as json_module
 
 
 @app.get("/fighters/seed")
@@ -346,7 +296,7 @@ async def get_seed_fighters() -> list[str]:
     seed_path = Path("data/fighters.json")
     if not seed_path.exists():
         return []
-    return json_module.loads(seed_path.read_text())
+    return json.loads(seed_path.read_text())
 
 
 @app.get("/queue", response_model=list[QueueItemResponse])
@@ -387,7 +337,7 @@ async def bulk_add_to_queue(
     session: Session = Depends(get_session),
 ) -> list[QueueItemResponse]:
     """Add multiple fighters to the queue. Silently skips names already pending."""
-    added = []
+    to_add = []
     for name in request.fighter_names:
         name = name.strip()
         if not name:
@@ -401,10 +351,12 @@ async def bulk_add_to_queue(
             continue
         item = FighterQueue(fighter_name=name, priority=request.priority)
         session.add(item)
-        session.commit()
+        to_add.append(item)
+
+    session.commit()
+    for item in to_add:
         session.refresh(item)
-        added.append(QueueItemResponse(**item.model_dump()))
-    return added
+    return [QueueItemResponse(**item.model_dump()) for item in to_add]
 
 
 @app.patch("/queue/{queue_id}", response_model=QueueItemResponse)
@@ -515,8 +467,8 @@ async def get_scheduler_config() -> SchedulerConfigResponse:
         job = scheduler.get_job("queue_job")
         if job and job.next_run_time:
             next_run = job.next_run_time.isoformat()
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Could not read scheduler job next_run_time: %s", e)
 
     return SchedulerConfigResponse(
         enabled=config.get("enabled", True),
@@ -577,8 +529,8 @@ async def update_scheduler_config(
         job = scheduler.get_job("queue_job")
         if job and job.next_run_time:
             next_run = job.next_run_time.isoformat()
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("Could not read scheduler job next_run_time: %s", e)
 
     return SchedulerConfigResponse(
         enabled=request.enabled,

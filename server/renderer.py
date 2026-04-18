@@ -1,6 +1,8 @@
 import logging
 from typing import Any
 from pathlib import Path
+from jinja2 import TemplateError
+from playwright.async_api import Error as PlaywrightError
 from server.service.render.template_renderer import TemplateRenderer
 from server.service.render.screenshot_handler import ScreenshotHandler
 from server.service.path_handler import PathHandler
@@ -51,6 +53,6 @@ async def render_slide(
 
         return output_path
 
-    except Exception as e:
+    except (TemplateError, PlaywrightError) as e:
         logger.error("Failed to render card: %s", e)
         raise RenderError(f"Card rendering failed: {e}") from e

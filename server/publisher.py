@@ -17,7 +17,7 @@ async def post_carousel(image_urls: list[str], caption: str) -> str:
     """Post an image to Instagram via the Meta Graph API.
 
     Args:
-        iimage_urls: List of public URLs to the carousel slide images (3 items)
+        image_urls: List of public URLs to the carousel slide images (3 items)
         caption: Instagram caption text
 
     Returns:
@@ -28,7 +28,11 @@ async def post_carousel(image_urls: list[str], caption: str) -> str:
     media_url = f"{GRAPH_API_BASE}/{settings.meta_instagram_account_id}/media"
     publish_url = f"{GRAPH_API_BASE}/{settings.meta_instagram_account_id}/media_publish"
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
+    # Token is sent in the Authorization header — never in the URL — to keep it
+    # out of proxy logs and HTTP access logs.
+    auth_headers = {"Authorization": f"Bearer {settings.meta_access_token}"}
+
+    async with httpx.AsyncClient(timeout=30.0, headers=auth_headers) as client:
 
         # Step 1 — item containers
         containers = []
@@ -36,7 +40,6 @@ async def post_carousel(image_urls: list[str], caption: str) -> str:
             data = await _post(client, media_url, {
                 "image_url": image_url,
                 "is_carousel_item": "true",
-                "access_token": settings.meta_access_token,
             }, error_context="item container")
             container_id = data["id"]
             logger.info("Created item container: %s", container_id)
@@ -48,7 +51,6 @@ async def post_carousel(image_urls: list[str], caption: str) -> str:
             "media_type": "CAROUSEL",
             "children": ",".join(containers),
             "caption": caption,
-            "access_token": settings.meta_access_token,
         }, error_context="carousel container")
         carousel_id = data["id"]
         logger.info("Created carousel container: %s", carousel_id)
@@ -57,7 +59,6 @@ async def post_carousel(image_urls: list[str], caption: str) -> str:
         # Step 3 — publish
         data = await _post(client, publish_url, {
             "creation_id": carousel_id,
-            "access_token": settings.meta_access_token,
         }, error_context="publish")
         logger.info("Published carousel post: %s", data["id"])
 
@@ -78,10 +79,7 @@ async def _wait_for_container(
         PublishError: If the container enters an error state or times out.
     """
     url = f"{GRAPH_API_BASE}/{container_id}"
-    params = {
-        "fields": "status_code,status",
-        "access_token": settings.meta_access_token,
-    }
+    params = {"fields": "status_code,status"}
 
     for attempt in range(1, MAX_POLL_ATTEMPTS + 1):
         response = await client.get(url, params=params)
@@ -113,19 +111,18 @@ async def _wait_for_container(
 async def _post(
         client: httpx.AsyncClient,
         url: str,
-        params: dict,
+        data: dict,
         error_context: str,
     ) -> dict:
-
     """Make a single authenticated POST to the Graph API and validate the response."""
-    response = await client.post(url, params=params)
-    data = response.json()
+    response = await client.post(url, data=data)
+    result = response.json()
 
     if response.status_code != 200:
-        raise PublishError(f"Graph API returned {response.status_code} ({error_context}): {data}")
-    if "error" in data:
-        raise PublishError(f"Graph API error ({error_context}): {data['error']['message']}")
-    if "id" not in data:
-        raise PublishError(f"Graph API returned no ID ({error_context}): {data}")
+        raise PublishError(f"Graph API returned {response.status_code} ({error_context}): {result}")
+    if "error" in result:
+        raise PublishError(f"Graph API error ({error_context}): {result['error']['message']}")
+    if "id" not in result:
+        raise PublishError(f"Graph API returned no ID ({error_context}): {result}")
 
-    return data
+    return result
