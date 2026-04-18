@@ -167,6 +167,7 @@ responsibilities across modules.
 | `renderer.py` | Jinja2 templating, Playwright, JPEG output | Any API calls, any data fetching |
 | `uploader.py` | R2/S3 client, file upload, URL construction | Any rendering, any posting |
 | `publisher.py` | Meta Graph API calls, Instagram post creation | Any file I/O, any image work |
+| `pipeline.py` | DB upsert logic (Fighter/FighterProfile/Card), full headless pipeline for scheduler | Any HTTP calls, any rendering |
 | `api.py` | FastAPI routes, request validation, HTTP responses | Any business logic |
 | `models.py` | SQLModel table definitions, relationships | Any queries, any business logic |
 | `database.py` | Engine creation, session factory, table init | Any model definitions, any routes |
@@ -184,19 +185,33 @@ into a single class definition. It feels native to FastAPI because it was design
 ### Sessions via Dependency Injection
 
 Never create sessions directly inside business logic. Always inject them via FastAPI's
-`Depends()` system:
+`Depends()` system in route handlers, and use `create_session()` everywhere else:
 
 ```python
-# database.py — define once
+# database.py — two session factories
+
 def get_session() -> Generator[Session, None, None]:
+    # For FastAPI routes via Depends()
     with Session(engine) as session:
         yield session
 
-# api.py — inject everywhere needed
+@contextmanager
+def create_session() -> Generator[Session, None, None]:
+    # For non-FastAPI callers (scheduler, pipeline.py)
+    with Session(engine) as session:
+        yield session
+
+# api.py — inject in routes
 @app.get("/fighters")
 async def list_fighters(session: Session = Depends(get_session)) -> list[Fighter]:
     return session.exec(select(Fighter)).all()
+
+# scheduler.py / pipeline.py — use context manager
+with create_session() as session:
+    ...
 ```
+
+Never use `Session(engine)` directly outside of `database.py`. Always go through one of these two factories.
 
 ### Querying
 
@@ -455,18 +470,38 @@ Guidelines:
 
 ## File Output
 
-All generated files go in `output/`. Use timestamped filenames so nothing overwrites:
+All generated files go in `output/`. Use timestamped filenames so nothing overwrites.
+Timestamps must include microseconds (`%f`) — second-resolution collides when rendering
+multiple slides for the same fighter in rapid succession:
 
 ```python
 from datetime import datetime
 
-def make_output_path(fighter_name: str) -> Path:
+def make_output_path(fighter_name: str, slide_num: int) -> Path:
     slug = fighter_name.lower().replace(" ", "_")
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    return Path("output") / f"{slug}_{timestamp}.jpg"
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+    return Path("output") / f"{slug}_{timestamp}_slide{slide_num}.jpg"
 ```
 
 Use `pathlib.Path` everywhere. Never concatenate file paths with string operations.
+
+---
+
+## Testing
+
+Tests live in `tests/`. Run them inside the Docker container — the host `.venv` was built
+at `/app/` and won't work outside of Docker:
+
+```bash
+docker exec muay_thai_py-app-1 /app/.venv/bin/pytest tests/ -v
+```
+
+Rules:
+- Use **pytest** with `pytest-asyncio` for async tests (`@pytest.mark.asyncio`)
+- Mock all external calls: httpx, anthropic SDK, playwright, boto3
+- Use a real **in-memory SQLite** database for DB tests — do not mock the DB
+- `tests/conftest.py` sets required env vars before any server import and provides shared fixtures
+- One test file per module: `test_enricher.py`, `test_pipeline.py`, etc.
 
 ---
 
@@ -492,7 +527,7 @@ Use `pathlib.Path` everywhere. Never concatenate file paths with string operatio
 - No business logic in route handlers
 - No secrets in code, ever
 - No raw SQL strings — use SQLModel `select()`
-- No DB sessions created outside of `get_session()` dependency injection
+- No DB sessions created with `Session(engine)` directly — use `get_session()` in routes, `create_session()` everywhere else
 - No forgetting `session.refresh()` after `session.commit()` — you will get `None` IDs
 - No storing lists or dicts directly in DB columns — JSON-encode them first
 - No bare `session.rollback()` without logging the error first
