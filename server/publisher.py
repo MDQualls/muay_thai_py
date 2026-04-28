@@ -56,6 +56,10 @@ async def post_carousel(image_urls: list[str], caption: str) -> str:
         logger.info("Created carousel container: %s", carousel_id)
         await _wait_for_container(client, carousel_id)
 
+        # Instagram reports FINISHED before the media is actually publishable.
+        # A brief pause here avoids the 2207027 "not ready" false rejection.
+        await asyncio.sleep(5.0)
+
         # Step 3 — publish
         data = await _post(client, publish_url, {
             "creation_id": carousel_id,

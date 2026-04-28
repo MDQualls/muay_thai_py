@@ -1,7 +1,8 @@
 {
   "enabled": true,
   "days": [
-    "sun"
+    "sun",
+    "wed"
   ],
   "time": "10:00",
   "timezone": "America/Chicago"
