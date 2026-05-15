@@ -20,6 +20,7 @@ build/
 .venv/
 venv/
 *.egg
+test/
 
 # uv
 .uv/
@@ -32,3 +33,13 @@ venv/
 .idea/
 *.swp
 *.swo
+
+#files
+CLAUDE.md
+muaythai-scaffold-brief.md
+carousel-brief.md
+fighter-queue-spec.md
+scheduler-config-spec.md
+scheduler-tab-and-queue-filter-spec.md
+muaythai-post-mvp.md
+.claude/settings.local.json
